@@ -1,0 +1,38 @@
+node_modules/
+.next/
+out/
+dist/
+coverage/
+
+# local env files
+.env*.local
+AuthKey_SM22X54L3A.p8
+client_595305494810-facdpfk0vn0js5lmetat6gnahie6lamk.apps.googleusercontent.com.plist
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.cursor/
+
+# deploy
+.vercel/
+
+# legacy native folders from old Expo app
+android/
+ios/
+.expo/
+.agents/
+assets/
+expo-env.d.ts
+
+# sensitive legacy credentials
+*.p8
+*.plist
