@@ -32,7 +32,7 @@ ios/
 .agents/*
 !.agents/skills/
 !.agents/skills/**
-assets/
+/assets/
 expo-env.d.ts
 
 # sensitive legacy credentials
