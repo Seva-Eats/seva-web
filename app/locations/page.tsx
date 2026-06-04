@@ -1,16 +1,40 @@
 'use client';
 
 import { List, Map, MapPin, Navigation, Utensils } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { AppShell } from '@/components/AppShell';
+import { SevaMap } from '@/components/map/SevaMap';
 import { PageHeader } from '@/components/PageHeader';
 import { dropOffLocations, type DropOffLocation } from '@/constants/mock-data';
+import { useLocation } from '@/context';
 import { useThemeColors } from '@/hooks/use-theme-colors';
 
 export default function LocationsPage() {
   const colors = useThemeColors();
-  const [showMap, setShowMap] = useState(false);
+  const { userLocation } = useLocation();
+  const [showMap, setShowMap] = useState(true);
+
+  const mapMarkers = useMemo(
+    () =>
+      dropOffLocations.map((loc) => ({
+        id: loc.id,
+        latitude: loc.location.latitude,
+        longitude: loc.location.longitude,
+        label: loc.name,
+        color:
+          loc.type === 'shelter'
+            ? '#3B82F6'
+            : loc.type === 'food_bank'
+              ? '#10B981'
+              : loc.type === 'community_center'
+                ? '#8B5CF6'
+                : '#F97316',
+      })),
+    []
+  );
+
+  const mapCenter = userLocation ?? dropOffLocations[0]?.location ?? { latitude: 43.7315, longitude: -79.7624 };
 
   const getTypeLabel = (type: DropOffLocation['type']) => {
     if (type === 'shelter') return 'Shelter';
@@ -71,36 +95,55 @@ export default function LocationsPage() {
           </div>
 
           {showMap ? (
-            <div className="space-y-3">
-              {dropOffLocations.map((loc) => (
-                <a
-                  key={loc.id}
-                  href={`https://www.google.com/maps/search/?api=1&query=${loc.location.latitude},${loc.location.longitude}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block rounded-2xl border p-4"
-                  style={{ borderColor: colors.border, backgroundColor: colors.surfaceElevated }}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-bold" style={{ color: colors.text }}>
-                        {loc.name}
-                      </p>
-                      <p className="text-sm" style={{ color: colors.mutedText }}>
-                        {loc.address}
-                      </p>
+            <>
+              <div className="overflow-hidden rounded-2xl border" style={{ borderColor: colors.border }}>
+                <SevaMap
+                  latitude={mapCenter.latitude}
+                  longitude={mapCenter.longitude}
+                  height={220}
+                  zoom={11}
+                  markers={mapMarkers}
+                  showCenterPin={false}
+                  showUserLocation
+                />
+              </div>
+              <div className="space-y-3">
+                {dropOffLocations.map((loc) => (
+                  <a
+                    key={loc.id}
+                    href={`https://www.google.com/maps/search/?api=1&query=${loc.location.latitude},${loc.location.longitude}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block rounded-2xl border p-4"
+                    style={{ borderColor: colors.border, backgroundColor: colors.surfaceElevated }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-bold" style={{ color: colors.text }}>
+                          {loc.name}
+                        </p>
+                        <p className="text-sm" style={{ color: colors.mutedText }}>
+                          {loc.address}
+                        </p>
+                      </div>
+                      <span
+                        className="rounded-full px-2 py-1 text-xs font-semibold"
+                        style={{ color: '#fff', backgroundColor: getTypeColor(loc.type) }}
+                      >
+                        {getTypeLabel(loc.type)}
+                      </span>
                     </div>
-                    <span className="rounded-full px-2 py-1 text-xs font-semibold" style={{ color: '#fff', backgroundColor: getTypeColor(loc.type) }}>
-                      {getTypeLabel(loc.type)}
-                    </span>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between text-sm" style={{ color: colors.mutedText }}>
-                    <span className="flex items-center gap-1"><Navigation size={14} />{loc.distance}</span>
-                    <span>{loc.boxesNeeded} boxes needed</span>
-                  </div>
-                </a>
-              ))}
-            </div>
+                    <div className="mt-3 flex items-center justify-between text-sm" style={{ color: colors.mutedText }}>
+                      <span className="flex items-center gap-1">
+                        <Navigation size={14} />
+                        {loc.distance}
+                      </span>
+                      <span>{loc.boxesNeeded} boxes needed</span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </>
           ) : (
             dropOffLocations.map((loc) => (
               <div
@@ -117,7 +160,10 @@ export default function LocationsPage() {
                       {loc.address}
                     </p>
                   </div>
-                  <span className="rounded-full px-2 py-1 text-xs font-semibold" style={{ color: getTypeColor(loc.type), backgroundColor: `${getTypeColor(loc.type)}20` }}>
+                  <span
+                    className="rounded-full px-2 py-1 text-xs font-semibold"
+                    style={{ color: getTypeColor(loc.type), backgroundColor: `${getTypeColor(loc.type)}20` }}
+                  >
                     {getTypeLabel(loc.type)}
                   </span>
                 </div>

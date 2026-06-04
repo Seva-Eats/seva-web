@@ -6,7 +6,6 @@ import {
   HandHelping,
   History,
   LogOut,
-  Mail,
   Map,
   MapPin,
   HelpCircle,
@@ -18,6 +17,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { AppShell } from '@/components/AppShell';
+import { AuthProviderIcon } from '@/components/auth/AuthProviderIcon';
+import { SevaMap } from '@/components/map/SevaMap';
 import { PageHeader } from '@/components/PageHeader';
 import { AUTH_PROVIDER_LABELS } from '@/constants/auth';
 import { TypeClass } from '@/constants/typography';
@@ -46,6 +47,8 @@ export default function ProfilePage() {
   const [address, setAddress] = useState(user?.homeAddress?.address ?? '');
   const [servingSize, setServingSize] = useState(String(user?.servingSize ?? 1));
   const [showMap, setShowMap] = useState(true);
+  const [mapLat, setMapLat] = useState(user?.homeAddress?.latitude ?? 43.7315);
+  const [mapLng, setMapLng] = useState(user?.homeAddress?.longitude ?? -79.7624);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -53,6 +56,16 @@ export default function ProfilePage() {
       router.replace('/seva/profile');
     }
   }, [user?.role, router]);
+
+  useEffect(() => {
+    if (user?.homeAddress) {
+      setMapLat(user.homeAddress.latitude);
+      setMapLng(user.homeAddress.longitude);
+    } else if (userLocation) {
+      setMapLat(userLocation.latitude);
+      setMapLng(userLocation.longitude);
+    }
+  }, [user?.homeAddress, userLocation]);
 
   const handleRoleChange = async (role: UserRole) => {
     if (role === user?.role) return;
@@ -94,8 +107,8 @@ export default function ProfilePage() {
         homeAddress: address.trim()
           ? {
               address: address.trim(),
-              latitude: user?.homeAddress?.latitude ?? userLocation?.latitude ?? 43.7315,
-              longitude: user?.homeAddress?.longitude ?? userLocation?.longitude ?? -79.7624,
+              latitude: mapLat,
+              longitude: mapLng,
             }
           : user?.homeAddress ?? null,
         servingSize: servingSizeValue,
@@ -126,7 +139,14 @@ export default function ProfilePage() {
     await refreshLocation();
     if (userLocation?.address) {
       setAddress(userLocation.address);
+      setMapLat(userLocation.latitude);
+      setMapLng(userLocation.longitude);
     }
+  };
+
+  const handlePinMove = (lat: number, lng: number) => {
+    setMapLat(lat);
+    setMapLng(lng);
   };
 
   return (
@@ -161,9 +181,7 @@ export default function ProfilePage() {
                   <p className={cn(TypeClass.metaLabel, 'text-[#9CA3AF]')}>Provider</p>
                   <div className="mt-0.5 flex items-center justify-between">
                     <p className={cn(TypeClass.metaValue, 'text-[#1A1A1A]')}>{providerLabel}</p>
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#F07B2A]">
-                      <Mail size={14} color="#fff" />
-                    </span>
+                    <AuthProviderIcon provider={user?.authProvider ?? 'email'} />
                   </div>
                 </div>
               </div>
@@ -317,13 +335,18 @@ export default function ProfilePage() {
 
             {showMap && (
               <>
-                <div className="h-44 overflow-hidden rounded-2xl border border-[#E8E3DA] bg-gradient-to-br from-[#D1FAE5] via-[#F3F4F6] to-[#DBEAFE]">
-                  <div className="flex h-full items-center justify-center">
-                    <MapPin size={40} className="text-[#F07B2A]" fill="#F07B2A" strokeWidth={1} />
-                  </div>
+                <div className="overflow-hidden rounded-2xl border border-[#E8E3DA]">
+                  <SevaMap
+                    latitude={mapLat}
+                    longitude={mapLng}
+                    height={176}
+                    draggablePin
+                    showUserLocation
+                    onPinMove={handlePinMove}
+                  />
                 </div>
                 <p className={cn(TypeClass.caption, 'mt-2 text-center text-[#6B7280]')}>
-                  Tap the map or drag the pin to set your address location.
+                  Drag the pin to set your delivery location.
                 </p>
               </>
             )}

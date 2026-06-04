@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { AppShell } from '@/components/AppShell';
+import { AuthProviderIcon } from '@/components/auth/AuthProviderIcon';
 import { SevaFlowHeader } from '@/components/seva/SevaFlowHeader';
 import { AUTH_PROVIDER_LABELS } from '@/constants/auth';
 import { TypeClass } from '@/constants/typography';
@@ -139,7 +140,10 @@ export default function VolunteerProfilePage() {
                 </div>
                 <div className="rounded-xl border border-[#F3F4F6] bg-[#FAFAFA] p-3">
                   <p className={cn(TypeClass.metaLabel, 'text-[#9CA3AF]')}>Provider</p>
-                  <p className={cn(TypeClass.metaValue, 'mt-0.5 text-[#1A1A1A]')}>{providerLabel}</p>
+                  <div className="mt-0.5 flex items-center justify-between">
+                    <p className={cn(TypeClass.metaValue, 'text-[#1A1A1A]')}>{providerLabel}</p>
+                    <AuthProviderIcon provider={user?.authProvider ?? 'email'} />
+                  </div>
                 </div>
               </div>
 

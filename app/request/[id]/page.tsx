@@ -1,11 +1,12 @@
 'use client';
 
-import { Car, Home, MapPin, MessageCircle, Store } from 'lucide-react';
+import { Car, Home, MapPin, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 import { AppShell } from '@/components/AppShell';
+import { SevaMap } from '@/components/map/SevaMap';
 import { RequestFlowHeader } from '@/components/request/RequestFlowHeader';
 import { DeliveryProgressStepper } from '@/components/tracking/DeliveryProgressStepper';
 import { RequestDetailsCard } from '@/components/tracking/RequestDetailsCard';
@@ -31,6 +32,36 @@ export default function RequestTrackingPage() {
   const eta = request?.estimatedDelivery
     ? request.estimatedDelivery.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
     : null;
+
+  const pickupCoords = request?.pickupLocation ?? {
+    latitude: 43.7315,
+    longitude: -79.7624,
+    address: request?.pickupLocationName ?? 'Hub',
+  };
+  const deliveryCoords = request?.deliveryAddress ?? {
+    latitude: 43.7285,
+    longitude: -79.7594,
+    address: 'Delivery',
+  };
+
+  const trackingMarkers = request
+    ? [
+        {
+          id: 'pickup',
+          latitude: pickupCoords.latitude,
+          longitude: pickupCoords.longitude,
+          label: request.pickupLocationName ?? 'Pickup hub',
+          color: '#F07B2A',
+        },
+        {
+          id: 'delivery',
+          latitude: deliveryCoords.latitude,
+          longitude: deliveryCoords.longitude,
+          label: deliveryCoords.address,
+          color: '#10B981',
+        },
+      ]
+    : [];
 
   const handleCancel = () => {
     if (!request || !id) return;
@@ -139,12 +170,25 @@ export default function RequestTrackingPage() {
             <div className="mt-4 space-y-4">
               <DeliveryProgressStepper status={request.status} />
 
-              <div className="overflow-hidden rounded-2xl border border-[#E8E3DA] bg-[#E5E7EB]">
-                <div className="relative h-44 bg-gradient-to-br from-[#D1FAE5] via-[#F3F4F6] to-[#DBEAFE]">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Store size={36} className="text-[#F07B2A]" />
-                  </div>
-                </div>
+              <div className="overflow-hidden rounded-2xl border border-[#E8E3DA]">
+                <SevaMap
+                  latitude={pickupCoords.latitude}
+                  longitude={pickupCoords.longitude}
+                  height={176}
+                  zoom={12}
+                  markers={trackingMarkers}
+                  showCenterPin={false}
+                  routeLine={[
+                    {
+                      latitude: pickupCoords.latitude,
+                      longitude: pickupCoords.longitude,
+                    },
+                    {
+                      latitude: deliveryCoords.latitude,
+                      longitude: deliveryCoords.longitude,
+                    },
+                  ]}
+                />
                 <div className={cn(TypeClass.captionXs, 'flex items-center gap-2 border-t border-[#E8E3DA] bg-white px-4 py-3')}>
                   <MapPin size={14} className="text-[#F07B2A]" />
                   <span className="font-semibold text-[#1A1A1A]">

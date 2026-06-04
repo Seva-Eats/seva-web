@@ -2,6 +2,21 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 type OtpType = 'signup' | 'magiclink' | 'recovery' | 'invite' | 'email' | 'email_change';
 
+/** OAuth codes are single-use; React Strict Mode can invoke the callback twice. */
+const exchangedOAuthCodes = new Set<string>();
+
+function isAuthSessionPresent(session: { user?: unknown } | null | undefined) {
+  return Boolean(session?.user);
+}
+
+async function hasActiveAuthSession() {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return false;
+  const { data, error } = await supabase.auth.getSession();
+  if (error) return false;
+  return isAuthSessionPresent(data.session);
+}
+
 function parseHashParams(hashValue: string) {
   const raw = hashValue.startsWith('#') ? hashValue.slice(1) : hashValue;
   return new URLSearchParams(raw);
@@ -24,6 +39,10 @@ function normalizeOtpType(value: string | null): OtpType | null {
 export async function completeAuthFromUrl(urlString: string) {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return false;
+
+  if (await hasActiveAuthSession()) {
+    return true;
+  }
 
   const queue = [urlString, decodeURIComponent(urlString)];
   const seen = new Set<string>();
@@ -68,8 +87,18 @@ export async function completeAuthFromUrl(urlString: string) {
 
   const code = getParam('code');
   if (code) {
+    if (exchangedOAuthCodes.has(code)) {
+      return (await hasActiveAuthSession()) || false;
+    }
+
+    exchangedOAuthCodes.add(code);
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) throw error;
+    if (error) {
+      if (await hasActiveAuthSession()) {
+        return true;
+      }
+      throw error;
+    }
     return true;
   }
 
@@ -95,7 +124,28 @@ export async function completeAuthFromUrl(urlString: string) {
     return true;
   }
 
-  return false;
+  return (await hasActiveAuthSession()) || false;
+}
+
+export function getAuthCallbackKind(urlString: string): 'oauth' | 'email' | 'unknown' {
+  let parsed: URL;
+  try {
+    parsed = new URL(urlString, 'http://local');
+  } catch {
+    return 'unknown';
+  }
+  const hash = parsed.hash.startsWith('#') ? parsed.hash.slice(1) : parsed.hash;
+  const hashParams = new URLSearchParams(hash);
+  if (parsed.searchParams.get('code') || hashParams.get('code')) return 'oauth';
+  if (
+    parsed.searchParams.get('token_hash') ||
+    hashParams.get('token_hash') ||
+    parsed.searchParams.get('access_token') ||
+    hashParams.get('access_token')
+  ) {
+    return 'email';
+  }
+  return 'unknown';
 }
 
 export function getAuthRedirectUrl() {

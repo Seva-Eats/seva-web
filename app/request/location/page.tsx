@@ -1,11 +1,13 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { MapPin, Store, User } from 'lucide-react';
+import { Landmark, Store, User } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { AppShell } from '@/components/AppShell';
+import { SevaMap } from '@/components/map/SevaMap';
 import { pickupLocations, type PickupLocation } from '@/constants/mock-data';
 import { TypeClass } from '@/constants/typography';
 import { cn } from '@/lib/cn';
@@ -28,7 +30,18 @@ function LocationCard({
       onClick={onPress}
       className="flex w-full items-start gap-4 rounded-2xl border border-[#E8E3DA] bg-white p-4 text-left shadow-[0_1px_4px_rgba(0,0,0,0.04)] active:scale-[0.99]"
     >
-      <MapPin size={28} className="shrink-0 text-[#F07B2A]" fill="#F07B2A" strokeWidth={1} />
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-[#F3F4F6] bg-[#FFF4EC]">
+        <Image
+          src={location.image}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="56px"
+        />
+        <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-[#F07B2A]">
+          <Landmark size={12} className="text-white" strokeWidth={2.5} />
+        </span>
+      </div>
       <div className="min-w-0 flex-1">
         <p className={cn(TypeClass.bodyMd, 'font-semibold text-[#1A1A1A]')}>{location.name}</p>
         <p className={cn(TypeClass.bodySm, 'text-[#6B7280]')}>{location.address}</p>
@@ -49,6 +62,19 @@ function LocationCard({
 
 export default function RequestLocationPage() {
   const router = useRouter();
+
+  const hubMarkers = pickupLocations.map((loc) => ({
+    id: loc.id,
+    latitude: loc.location.latitude,
+    longitude: loc.location.longitude,
+    label: loc.name,
+    color: '#F07B2A',
+  }));
+
+  const mapCenter = pickupLocations[0]?.location ?? {
+    latitude: 43.7315,
+    longitude: -79.7624,
+  };
 
   const handleSelect = (location: PickupLocation) => {
     router.push(`/request/new?location=${location.id}`);
@@ -75,6 +101,18 @@ export default function RequestLocationPage() {
         </header>
 
         <div className="p-4">
+          <div className="mb-4 overflow-hidden rounded-2xl border border-[#E8E3DA]">
+            <SevaMap
+              latitude={mapCenter.latitude}
+              longitude={mapCenter.longitude}
+              height={160}
+              zoom={11}
+              markers={hubMarkers}
+              showCenterPin={false}
+              interactive
+            />
+          </div>
+
           <div className="mb-5 flex gap-3 rounded-2xl bg-[#FFF2E6] p-4">
             <Store size={24} className="shrink-0 text-[#F07B2A]" />
             <div>

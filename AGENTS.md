@@ -2,6 +2,17 @@
 
 This file guides AI agents building UI and flows in **seva-eats-web**. The web app mirrors the Expo app in **sewa-eats** (same product, shared tokens). Read this before changing screens, components, or styles.
 
+## Planning docs (read for new features)
+
+| Doc | Use when |
+|-----|----------|
+| [context.md](./context.md) | What exists today, schema map, repo links |
+| [docs/ROADMAP.md](./docs/ROADMAP.md) | **What to build next** — phased tasks + exit criteria |
+| [docs/ROUTING.md](./docs/ROUTING.md) | Dispatch, VRP, `driver_routes`, matrix API, live tracking |
+| `.agents/skills/seva-routing/SKILL.md` | Short routing rules for agents |
+
+Build **one phase at a time** per ROADMAP. Do not implement WhatsApp or full VRP before Phase 0–1 SQL wiring is done.
+
 ## Product
 
 - **Mission**: Free langar meals for people in need, delivered with dignity; volunteers power pickup and drop-off.
@@ -85,6 +96,12 @@ components/
 - Keep copy short, dignified, and plain language.
 - Use existing context (`UserContext`, `RequestContext`, `LocationContext`) — no duplicate state.
 
+## Agent workflow (defaults)
+
+- **Do not** run `npm run build` after every change. Run it only when the user asks, when CI is failing, or when you changed build/config/types in ways that clearly need a full compile check.
+- **Do not** `git push`, open PRs, or create commits unless the user explicitly asks. Local edits only unless they request git operations.
+- Prefer quick checks (`read_lints` on touched files) over full production builds for routine UI work.
+
 ## Don't
 
 - Don't introduce Inter, Roboto, or generic “AI dashboard” aesthetics.
@@ -101,13 +118,3 @@ When unsure, compare:
 2. Web onboarding slide 1: `app/onboarding/slide1/page.tsx`
 3. Web role slide: `app/onboarding/slide2/page.tsx` + `RoleChoiceCard`
 4. Web meals: `app/request/new/page.tsx`
-
-## Verification
-
-After UI changes:
-
-```bash
-npm run build
-```
-
-Manually check onboarding slide 2 → slide 3 → sign-in, and one request path screen for visual consistency (cream bg, orange accent, same type scale).
