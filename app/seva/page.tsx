@@ -2,16 +2,21 @@
 
 import { Car, MapPin, Navigation, Package } from 'lucide-react';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useMemo } from 'react';
 
 import { AppShell } from '@/components/AppShell';
 import { SevaFlowHeader } from '@/components/seva/SevaFlowHeader';
-import {
-  MOCK_VOLUNTEER_ROUTE,
-  type VolunteerActiveRoute,
-  type VolunteerRouteStatus,
-} from '@/constants/volunteer-deliveries';
+import { SevaStickyFooter } from '@/components/seva/SevaStickyFooter';
 import { TypeClass } from '@/constants/typography';
+import type { VolunteerRouteStatus } from '@/constants/volunteer-deliveries';
+import { useVolunteerRoute } from '@/context/VolunteerRouteContext';
+import {
+  countDeliveredStops,
+  formatStopAddress,
+  getActiveStop,
+  getContinueRoutePath,
+} from '@/lib/volunteer-route/helpers';
 import { cn } from '@/lib/cn';
 
 const ROUTE_STATUS_LABEL: Record<VolunteerRouteStatus, string> = {
@@ -21,30 +26,26 @@ const ROUTE_STATUS_LABEL: Record<VolunteerRouteStatus, string> = {
 };
 
 export default function SevaDeliveriesPage() {
-  const [route, setRoute] = useState<VolunteerActiveRoute>(MOCK_VOLUNTEER_ROUTE);
+  const router = useRouter();
+  const { route, startRoute } = useVolunteerRoute();
 
-  const nextStop = useMemo(
-    () => route.stops.find((s) => s.status === 'pending' || s.status === 'en_route'),
-    [route.stops]
-  );
+  const nextStop = useMemo(() => getActiveStop(route), [route]);
+  const deliveredCount = countDeliveredStops(route);
+  const continuePath = getContinueRoutePath(route.phase, route);
 
-  const startRoute = () => {
-    setRoute((prev) => ({
-      ...prev,
-      status: 'in_progress',
-      stops: prev.stops.map((s, i) =>
-        i === 0 ? { ...s, status: 'en_route' as const } : s
-      ),
-    }));
+  const handleStartRoute = () => {
+    startRoute();
+    router.push('/seva/route/pickup');
+  };
+
+  const openDirections = () => {
+    router.push(continuePath);
   };
 
   return (
     <AppShell>
       <div className="min-h-screen bg-[#FFF9F2] pb-28">
-        <SevaFlowHeader
-          title="Tonight's seva"
-          subtitle="Delivery route"
-        />
+        <SevaFlowHeader title="Tonight's seva" subtitle="Delivery route" />
 
         <div className="space-y-4 p-4">
           <div className="rounded-2xl border border-[#E8E3DA] bg-[#FFF7ED] p-4">
@@ -59,6 +60,8 @@ export default function SevaDeliveriesPage() {
                 </p>
                 <p className={cn(TypeClass.bodySm, 'mt-1 text-[#6B7280]')}>
                   {ROUTE_STATUS_LABEL[route.status]}
+                  {route.status === 'in_progress' &&
+                    ` · ${deliveredCount}/${route.totalStops} delivered`}
                 </p>
               </div>
             </div>
@@ -78,27 +81,38 @@ export default function SevaDeliveriesPage() {
             </p>
           </div>
 
-          {nextStop && route.status === 'in_progress' && (
+          {route.status === 'in_progress' && (
             <div className="rounded-2xl border-2 border-[#F07B2A] bg-white p-4">
-              <p className={cn(TypeClass.label, 'text-[#F07B2A]')}>NEXT STOP</p>
-              <p className={cn(TypeClass.body, 'mt-1 font-semibold text-[#1A1A1A]')}>
-                {nextStop.recipientName}
+              <p className={cn(TypeClass.label, 'text-[#F07B2A]')}>
+                {nextStop ? 'NEXT STOP' : 'ROUTE'}
               </p>
-              <p className={cn(TypeClass.bodySm, 'mt-1 text-[#6B7280]')}>
-                {nextStop.addressLine}, {nextStop.city}
-              </p>
-              {nextStop.notes && (
-                <p className={cn(TypeClass.caption, 'mt-2 text-[#6B7280]')}>{nextStop.notes}</p>
+              {nextStop ? (
+                <>
+                  <p className={cn(TypeClass.body, 'mt-1 font-semibold text-[#1A1A1A]')}>
+                    Stop {nextStop.sequence} · {nextStop.recipientName}
+                  </p>
+                  <p className={cn(TypeClass.bodySm, 'mt-1 text-[#6B7280]')}>
+                    {formatStopAddress(nextStop)}
+                  </p>
+                  {nextStop.notes && (
+                    <p className={cn(TypeClass.caption, 'mt-2 text-[#6B7280]')}>{nextStop.notes}</p>
+                  )}
+                </>
+              ) : (
+                <p className={cn(TypeClass.body, 'mt-1 font-semibold text-[#1A1A1A]')}>
+                  Head to gurdwara for pickup
+                </p>
               )}
               <button
                 type="button"
+                onClick={openDirections}
                 className={cn(
                   TypeClass.btn,
                   'mt-4 flex w-full items-center justify-center gap-2 rounded-[28px] bg-[#F07B2A] py-3.5 font-bold text-white'
                 )}
               >
                 <Navigation size={18} />
-                Open directions
+                {nextStop ? 'Continue delivery' : 'Continue route'}
               </button>
             </div>
           )}
@@ -109,40 +123,32 @@ export default function SevaDeliveriesPage() {
             </h2>
             <ul className="space-y-2">
               {route.stops.map((stop) => (
-                <li
-                  key={stop.id}
-                  className={cn(
-                    'flex gap-3 rounded-2xl border bg-white p-3',
-                    stop.status === 'en_route'
-                      ? 'border-[#F07B2A]'
-                      : 'border-[#E8E3DA]',
-                    stop.status === 'delivered' && 'opacity-60'
-                  )}
-                >
-                  <span
-                    className={cn(
-                      'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold',
-                      stop.status === 'delivered'
-                        ? 'bg-[#D1FAE5] text-[#059669]'
-                        : stop.status === 'en_route'
-                          ? 'bg-[#FFE8D4] text-[#F07B2A]'
-                          : 'bg-[#F3F4F6] text-[#6B7280]'
-                    )}
-                  >
-                    {stop.sequence}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className={cn(TypeClass.body, 'font-semibold text-[#1A1A1A]')}>
-                      {stop.recipientName}
-                    </p>
-                    <p className={cn(TypeClass.caption, 'text-[#6B7280]')}>
-                      {stop.addressLine} · {stop.meals} meals
-                    </p>
-                  </div>
-                  {stop.status === 'delivered' && (
-                    <span className={cn(TypeClass.micro, 'self-center text-[#059669]')}>
-                      Done
-                    </span>
+                <li key={stop.id}>
+                  {route.status === 'in_progress' &&
+                  (stop.status === 'en_route' || stop.status === 'pending') ? (
+                    <Link
+                      href={`/seva/route/stop/${stop.id}`}
+                      className={cn(
+                        'flex gap-3 rounded-2xl border bg-white p-3 transition-colors',
+                        stop.status === 'en_route'
+                          ? 'border-[#F07B2A]'
+                          : 'border-[#E8E3DA] hover:border-[#F07B2A]/50'
+                      )}
+                    >
+                      <StopRow stop={stop} />
+                    </Link>
+                  ) : (
+                    <div
+                      className={cn(
+                        'flex gap-3 rounded-2xl border bg-white p-3',
+                        stop.status === 'en_route'
+                          ? 'border-[#F07B2A]'
+                          : 'border-[#E8E3DA]',
+                        stop.status === 'delivered' && 'opacity-60'
+                      )}
+                    >
+                      <StopRow stop={stop} />
+                    </div>
                   )}
                 </li>
               ))}
@@ -153,18 +159,18 @@ export default function SevaDeliveriesPage() {
             <div className="flex items-center gap-2 text-[#6B7280]">
               <Car size={18} className="text-[#F07B2A]" />
               <p className={cn(TypeClass.caption)}>
-                Optimized routes from the coordinator will appear here once dispatch is live.
-                This preview uses sample stops for testing.
+                Live GPS and coordinator routes will replace this preview once dispatch is
+                connected. Use Continue route to walk through pickup and each stop.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="fixed bottom-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 border-t border-[#E8E3DA] bg-white px-4 pb-8 pt-4">
+        <SevaStickyFooter>
           {route.status === 'assigned' ? (
             <button
               type="button"
-              onClick={startRoute}
+              onClick={handleStartRoute}
               className={cn(
                 TypeClass.btn,
                 'flex w-full items-center justify-center rounded-[28px] bg-[#F07B2A] py-4 font-bold text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)]'
@@ -172,19 +178,71 @@ export default function SevaDeliveriesPage() {
             >
               Start route
             </button>
-          ) : (
+          ) : route.status === 'completed' ? (
             <Link
-              href="/seva/profile"
+              href="/seva/route/complete"
               className={cn(
                 TypeClass.btn,
-                'flex w-full items-center justify-center rounded-[28px] border border-[#E8E3DA] bg-white py-4 font-semibold text-[#1A1A1A]'
+                'flex w-full items-center justify-center rounded-[28px] bg-[#059669] py-4 font-bold text-white'
               )}
             >
-              Volunteer settings
+              View shift summary
             </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={openDirections}
+              className={cn(
+                TypeClass.btn,
+                'flex w-full items-center justify-center rounded-[28px] bg-[#F07B2A] py-4 font-bold text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)]'
+              )}
+            >
+              Continue route
+            </button>
           )}
-        </div>
+        </SevaStickyFooter>
       </div>
     </AppShell>
+  );
+}
+
+function StopRow({
+  stop,
+}: {
+  stop: {
+    sequence: number;
+    recipientName: string;
+    addressLine: string;
+    meals: number;
+    status: string;
+  };
+}) {
+  return (
+    <>
+      <span
+        className={cn(
+          'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold',
+          stop.status === 'delivered'
+            ? 'bg-[#D1FAE5] text-[#059669]'
+            : stop.status === 'en_route'
+              ? 'bg-[#FFE8D4] text-[#F07B2A]'
+              : 'bg-[#F3F4F6] text-[#6B7280]'
+        )}
+      >
+        {stop.sequence}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className={cn(TypeClass.body, 'font-semibold text-[#1A1A1A]')}>{stop.recipientName}</p>
+        <p className={cn(TypeClass.caption, 'text-[#6B7280]')}>
+          {stop.addressLine} · {stop.meals} meals
+        </p>
+      </div>
+      {stop.status === 'delivered' && (
+        <span className={cn(TypeClass.micro, 'self-center text-[#059669]')}>Done</span>
+      )}
+      {stop.status === 'en_route' && (
+        <span className={cn(TypeClass.micro, 'self-center text-[#F07B2A]')}>Active</span>
+      )}
+    </>
   );
 }

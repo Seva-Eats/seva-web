@@ -15,6 +15,16 @@ export type VolunteerRouteStop = {
 
 export type VolunteerRouteStatus = 'assigned' | 'in_progress' | 'completed';
 
+/** In-app progression before Supabase route_stops (Phase 3). */
+export type VolunteerFlowPhase =
+  | 'idle'
+  | 'pickup_drive'
+  | 'pickup_arrived'
+  | 'stop_drive'
+  | 'stop_arrived'
+  | 'stop_deliver'
+  | 'route_done';
+
 export type VolunteerActiveRoute = {
   id: string;
   label: string;
@@ -23,10 +33,13 @@ export type VolunteerActiveRoute = {
   pickupAddress: string;
   pickupAt: string;
   status: VolunteerRouteStatus;
+  phase: VolunteerFlowPhase;
   totalStops: number;
   completedStops: number;
   stops: VolunteerRouteStop[];
 };
+
+export const SEVA_ROUTE_STORAGE_KEY = 'seva-active-route';
 
 export const MOCK_VOLUNTEER_ROUTE: VolunteerActiveRoute = {
   id: 'route-demo-3',
@@ -36,6 +49,7 @@ export const MOCK_VOLUNTEER_ROUTE: VolunteerActiveRoute = {
   pickupAddress: '7080 Dixie Rd, Mississauga',
   pickupAt: '5:30 PM',
   status: 'assigned',
+  phase: 'idle',
   totalStops: 5,
   completedStops: 0,
   stops: [
