@@ -16,22 +16,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { getHomePathForRole, getStoredUserRole } from '@/lib/navigation/role-paths';
 import { setOnboardingCompleted } from '@/lib/storage';
 
-type OAuthProvider = 'google' | 'apple';
-
 const ORANGE = ONBOARDING_COLORS.accent;
-
-const providerName: Record<OAuthProvider, string> = {
-  google: 'Google',
-  apple: 'Apple',
-};
-
-function AppleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="white" aria-hidden>
-      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-    </svg>
-  );
-}
 
 function GoogleIcon() {
   return (
@@ -59,7 +44,7 @@ function GoogleIcon() {
 export default function SignInPage() {
   const router = useRouter();
   const { mockSignIn, user } = useUser();
-  const [isLoading, setIsLoading] = useState<OAuthProvider | null>(null);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   useEffect(() => {
     if (user?.isAuthenticated) {
@@ -67,21 +52,21 @@ export default function SignInPage() {
     }
   }, [router, user?.isAuthenticated, user?.role]);
 
-  const completeSession = async (provider: OAuthProvider) => {
+  const completeGoogleSession = async () => {
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !hasSupabaseConfig) {
       alert(
-        'Supabase not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to your environment.'
+        'Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel, then redeploy.'
       );
       return;
     }
 
-    setIsLoading(provider);
+    setIsGoogleLoading(true);
     const redirectTo = getAuthRedirectUrl();
 
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
+        provider: 'google',
         options: { redirectTo },
       });
 
@@ -91,7 +76,7 @@ export default function SignInPage() {
 
       window.location.href = data.url;
     } catch (error) {
-      setIsLoading(null);
+      setIsGoogleLoading(false);
       if (isNetworkTimeoutError(error)) {
         alert(
           'Network error: Could not reach the sign-in service. Check your connection and try again.'
@@ -110,7 +95,7 @@ export default function SignInPage() {
 
   return (
     <AppShell>
-      {isLoading && <LoadingOverlay message={`Signing in with ${providerName[isLoading]}...`} />}
+      {isGoogleLoading && <LoadingOverlay message="Signing in with Google..." />}
       <div className="flex min-h-screen flex-col gap-4 px-6 pb-6 pt-2">
         <div className="flex items-center justify-between">
           <BackNavButton onPress={() => router.push('/onboarding/slide3')} />
@@ -123,40 +108,34 @@ export default function SignInPage() {
             <p className={cn(TypeClass.signInEyebrow, 'text-[#F07B2A]')}>ACCOUNT</p>
             <h1 className={cn(TypeClass.signInTitle, 'mt-1 text-[#1A1A1A]')}>Sign in to continue</h1>
             <p className={cn(TypeClass.signInSubtitle, 'mt-1 text-[#6B7280]')}>
-              Choose Apple, Google, or continue with email.
+              Choose Google or continue with email.
             </p>
           </div>
 
           <div className="w-full max-w-[360px] rounded-2xl border border-[#E8E3DA] bg-[#F7F4EF] p-3.5">
             <button
               type="button"
-              onClick={() => completeSession('apple')}
-              disabled={isLoading !== null}
-              className={cn(TypeClass.authBtn, 'relative mb-2.5 flex min-h-[50px] w-full items-center justify-center rounded-[14px] border border-[#111] bg-[#111] text-white disabled:opacity-60 active:scale-[0.99]')}
-            >
-              <span className="absolute left-[18px]">
-                <AppleIcon />
-              </span>
-              {isLoading === 'apple' ? 'Please wait...' : 'Continue with Apple'}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => completeSession('google')}
-              disabled={isLoading !== null}
-              className={cn(TypeClass.authBtn, 'relative flex min-h-[50px] w-full items-center justify-center rounded-[14px] border border-[#111] bg-white text-[#111] disabled:opacity-60 active:scale-[0.99]')}
+              onClick={completeGoogleSession}
+              disabled={isGoogleLoading}
+              className={cn(
+                TypeClass.authBtn,
+                'relative flex min-h-[50px] w-full items-center justify-center rounded-[14px] border border-[#111] bg-white text-[#111] disabled:opacity-60 active:scale-[0.99]'
+              )}
             >
               <span className="absolute left-[18px]">
                 <GoogleIcon />
               </span>
-              {isLoading === 'google' ? 'Please wait...' : 'Continue with Google'}
+              {isGoogleLoading ? 'Please wait...' : 'Continue with Google'}
             </button>
 
             <button
               type="button"
               onClick={() => router.push('/onboarding/email?mode=signin')}
-              disabled={isLoading !== null}
-              className={cn(TypeClass.onboardCta, 'mt-2.5 flex min-h-12 w-full items-center justify-center rounded-[28px] text-white disabled:opacity-60 active:scale-[0.99]')}
+              disabled={isGoogleLoading}
+              className={cn(
+                TypeClass.onboardCta,
+                'mt-2.5 flex min-h-12 w-full items-center justify-center rounded-[28px] text-white disabled:opacity-60 active:scale-[0.99]'
+              )}
               style={{ backgroundColor: ORANGE }}
             >
               Continue with Email
@@ -164,7 +143,12 @@ export default function SignInPage() {
 
             <div className="my-2 flex items-center gap-2">
               <div className="h-px flex-1 bg-[#E5E7EB]" />
-              <span className={cn(TypeClass.captionXs, 'font-semibold uppercase tracking-wide text-[#6B7280]')}>
+              <span
+                className={cn(
+                  TypeClass.captionXs,
+                  'font-semibold uppercase tracking-wide text-[#6B7280]'
+                )}
+              >
                 or
               </span>
               <div className="h-px flex-1 bg-[#E5E7EB]" />
@@ -173,8 +157,11 @@ export default function SignInPage() {
             <button
               type="button"
               onClick={() => router.push('/onboarding/email?mode=signup')}
-              disabled={isLoading !== null}
-              className={cn(TypeClass.body, 'flex min-h-[46px] w-full items-center justify-center rounded-[28px] border bg-transparent font-bold disabled:opacity-60 active:scale-[0.99]')}
+              disabled={isGoogleLoading}
+              className={cn(
+                TypeClass.body,
+                'flex min-h-[46px] w-full items-center justify-center rounded-[28px] border bg-transparent font-bold disabled:opacity-60 active:scale-[0.99]'
+              )}
               style={{ borderColor: ORANGE, color: ORANGE }}
             >
               Sign Up with Email

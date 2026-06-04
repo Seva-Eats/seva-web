@@ -27,7 +27,7 @@ function EmailAuthContent() {
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !hasSupabaseConfig) {
       alert(
-        'Supabase not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.'
+        'Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel, then redeploy.'
       );
       return;
     }

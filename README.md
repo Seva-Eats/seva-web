@@ -15,7 +15,7 @@ Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (or keep exis
 2. In **Supabase Dashboard → Authentication → URL configuration**, add:
 
 - `http://localhost:3000/auth/callback`
-- Your production URL + `/auth/callback`
+- `https://sevaeats.vercel.app/auth/callback` (production)
 
 3. Install and run:
 
