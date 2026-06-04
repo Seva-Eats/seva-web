@@ -16,6 +16,8 @@ import { AppShell } from '@/components/AppShell';
 import BackNavButton from '@/components/onboarding/BackNavButton';
 import ProgressDots from '@/components/onboarding/ProgressDots';
 import { ONBOARDING_COLORS, ONBOARDING_TOKENS } from '@/constants/onboarding';
+import { TypeClass } from '@/constants/typography';
+import { cn } from '@/lib/cn';
 import { setOnboardingCompleted } from '@/lib/storage';
 
 const ORANGE = ONBOARDING_COLORS.accent;
@@ -48,7 +50,7 @@ function RuleRow({ icon: Icon, label, isLast = false }: { icon: LucideIcon; labe
       <div className="flex w-7 items-center justify-center">
         <Icon size={26} color={ORANGE} strokeWidth={1.75} />
       </div>
-      <span className="text-[15px] font-medium tracking-[-0.4px] text-[#1B1D21]">{label}</span>
+      <span className={cn(TypeClass.onboardRule, 'text-[#1B1D21]')}>{label}</span>
     </div>
   );
 }
@@ -59,7 +61,7 @@ function CheckItem({ label }: { label: string }) {
       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFECD9]">
         <Check size={13} color={ORANGE} strokeWidth={3} />
       </div>
-      <span className="text-[15px] font-semibold tracking-[-0.3px] text-[#1B1D21]">{label}</span>
+      <span className={cn(TypeClass.onboardCheck, 'text-[#1B1D21]')}>{label}</span>
     </div>
   );
 }
@@ -89,32 +91,18 @@ export default function Slide1Page() {
         >
           <BackNavButton onPress={() => router.push('/onboarding')} />
           <ProgressDots total={4} current={0} />
-          <button type="button" onClick={skip} className="min-w-10 text-right text-[15px] font-medium text-[#6B7280]">
+          <button type="button" onClick={skip} className={cn(TypeClass.onboardSkip, 'min-w-10 text-right text-[#6B7280]')}>
             Skip
           </button>
         </div>
 
         <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto pb-2">
-          <h1
-            className="text-center font-extrabold text-[#15181C]"
-            style={{
-              fontSize: ONBOARDING_TOKENS.titleSize,
-              lineHeight: `${ONBOARDING_TOKENS.titleLineHeight}px`,
-              letterSpacing: '-1.2px',
-            }}
-          >
+          <h1 className={cn(TypeClass.onboardHeadline, 'text-center text-[#15181C]')}>
             Access food
             <br />
             without barriers
           </h1>
-          <p
-            className="mx-auto max-w-[340px] text-center text-[#5E646C]"
-            style={{
-              fontSize: ONBOARDING_TOKENS.subtitleSize,
-              lineHeight: `${ONBOARDING_TOKENS.subtitleLineHeight}px`,
-              letterSpacing: '-0.2px',
-            }}
-          >
+          <p className={cn(TypeClass.onboardSubtext, 'mx-auto max-w-[340px] text-center text-[#5E646C]')}>
             Warm, authentic meals delivered with dignity.
           </p>
 
@@ -142,7 +130,7 @@ export default function Slide1Page() {
               </div>
             </div>
 
-            <p className="text-center text-[22px] font-bold leading-[27px] tracking-[-0.5px] text-[#181B1F]">
+            <p className={cn(TypeClass.onboardCardTitle, 'text-center text-[#181B1F]')}>
               Access to meals
             </p>
             <div className="mb-2.5 mt-1 h-[3px] w-7 rounded-sm bg-[#F07B2A]" />
@@ -150,12 +138,12 @@ export default function Slide1Page() {
             <div className="flex w-full items-center justify-between">
               <div className="flex flex-1 items-center justify-center gap-2">
                 <Car size={18} color={ORANGE} strokeWidth={1.75} />
-                <span className="text-[13px] font-medium text-[#535A62]">Free delivery</span>
+                <span className={cn(TypeClass.onboardPill, 'text-[#535A62]')}>Free delivery</span>
               </div>
               <div className="mx-2 h-6 w-px bg-[#EDE3DA]" />
               <div className="flex flex-1 items-center justify-center gap-2">
                 <Heart size={18} color={ORANGE} strokeWidth={1.75} />
-                <span className="text-[13px] font-medium text-[#535A62]">Made with care</span>
+                <span className={cn(TypeClass.onboardPill, 'text-[#535A62]')}>Made with care</span>
               </div>
             </div>
           </div>
@@ -174,7 +162,7 @@ export default function Slide1Page() {
           <button
             type="button"
             onClick={() => router.push('/onboarding/slide2')}
-            className="mt-4 flex w-full items-center justify-center rounded-[28px] text-[17px] font-bold tracking-[0.2px] text-white shadow-[0_8px_16px_rgba(240,123,42,0.32)] active:scale-[0.99]"
+            className={cn(TypeClass.onboardCta, 'mt-4 flex w-full items-center justify-center rounded-[28px] text-white shadow-[0_8px_16px_rgba(240,123,42,0.32)] active:scale-[0.99]')}
             style={{
               height: ONBOARDING_TOKENS.smallCtaHeight,
               backgroundColor: ORANGE,

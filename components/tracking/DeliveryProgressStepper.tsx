@@ -3,6 +3,8 @@
 import { Car, Check, Search } from 'lucide-react';
 
 import type { MealRequestStatus } from '@/context';
+import { TypeClass } from '@/constants/typography';
+import { cn } from '@/lib/cn';
 
 const STEPS = [
   { key: 'finding', label: 'Finding Driver', statuses: ['pending'] as MealRequestStatus[] },
@@ -46,7 +48,7 @@ export function DeliveryProgressStepper({ status }: { status: MealRequestStatus 
 
   return (
     <div className="rounded-2xl border border-[#E8E3DA] bg-white p-4">
-      <p className="mb-4 text-[15px] font-bold text-[#1A1A1A]">Delivery Progress</p>
+      <p className={cn(TypeClass.progressTitle, 'mb-4 text-[#1A1A1A]')}>Delivery Progress</p>
       <div className="relative flex justify-between">
         <div className="absolute left-6 right-6 top-6 h-0.5 bg-[#E5E7EB]" />
         {STEPS.map((step, index) => {
@@ -64,7 +66,7 @@ export function DeliveryProgressStepper({ status }: { status: MealRequestStatus 
             <div key={step.key} className="relative z-10 flex flex-col items-center gap-1.5">
               <StepIcon index={index} active={active} complete={complete} />
               <span
-                className="max-w-[72px] truncate text-center text-[10px] font-semibold"
+                className={cn(TypeClass.progressStep, 'max-w-[72px] truncate text-center')}
                 style={{ color: labelColor }}
               >
                 {step.label}

@@ -4,7 +4,9 @@ import { ArrowLeft, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import { TypeClass } from '@/constants/typography';
 import { useThemeColors } from '@/hooks/use-theme-colors';
+import { cn } from '@/lib/cn';
 
 type RequestFlowHeaderProps = {
   title: string;
@@ -56,11 +58,11 @@ export function RequestFlowHeader({
           )}
         </button>
         <div className="flex-1 px-2 text-center">
-          <h1 className="text-[17px] font-bold" style={{ color: colors.text }}>
+          <h1 className={cn(TypeClass.screenTitle)} style={{ color: colors.text }}>
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-0.5 text-xs" style={{ color: colors.mutedText }}>
+            <p className={cn(TypeClass.screenSubtitle, 'mt-0.5')} style={{ color: colors.mutedText }}>
               {subtitle}
             </p>
           )}

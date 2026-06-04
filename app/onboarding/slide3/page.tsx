@@ -8,6 +8,8 @@ import { AppShell } from '@/components/AppShell';
 import BackNavButton from '@/components/onboarding/BackNavButton';
 import ProgressDots from '@/components/onboarding/ProgressDots';
 import { ONBOARDING_COLORS, ONBOARDING_TOKENS } from '@/constants/onboarding';
+import { TypeClass } from '@/constants/typography';
+import { cn } from '@/lib/cn';
 import { setOnboardingCompleted } from '@/lib/storage';
 
 const ORANGE = ONBOARDING_COLORS.accent;
@@ -55,7 +57,7 @@ export default function Slide3Page() {
         >
           <BackNavButton onPress={() => router.push('/onboarding/slide2')} />
           <ProgressDots total={4} current={2} />
-          <button type="button" onClick={skip} className="min-w-10 text-right text-[15px] font-medium text-[#6B7280]">
+          <button type="button" onClick={skip} className={cn(TypeClass.onboardSkip, 'min-w-10 text-right text-[#6B7280]')}>
             Skip
           </button>
         </div>
@@ -67,19 +69,14 @@ export default function Slide3Page() {
             transition={{ delay: 0.1, type: 'spring' }}
             className="self-center rounded-lg bg-[#FFE8D4] px-3 py-[5px]"
           >
-            <span className="text-[11px] font-bold tracking-[1.4px] text-[#F07B2A]">SIMPLE PROCESS</span>
+            <span className={cn(TypeClass.onboardBadge, 'text-[#F07B2A]')}>SIMPLE PROCESS</span>
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, type: 'spring' }}
-            className="text-center font-extrabold text-[#1A1A1A]"
-            style={{
-              fontSize: ONBOARDING_TOKENS.titleSize,
-              lineHeight: `${ONBOARDING_TOKENS.titleLineHeight}px`,
-              letterSpacing: '-0.8px',
-            }}
+            className={cn(TypeClass.onboardHeadline, 'text-center text-[#1A1A1A]')}
           >
             How It Works
           </motion.h1>
@@ -88,11 +85,7 @@ export default function Slide3Page() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, type: 'spring' }}
-            className="mb-2 text-center text-[#6B7280]"
-            style={{
-              fontSize: ONBOARDING_TOKENS.subtitleSize,
-              lineHeight: `${ONBOARDING_TOKENS.subtitleLineHeight}px`,
-            }}
+            className={cn(TypeClass.onboardSubtext, 'mb-2 text-center text-[#6B7280]')}
           >
             Access nutritious meals in 3 easy steps
           </motion.p>
@@ -107,7 +100,7 @@ export default function Slide3Page() {
         <button
           type="button"
           onClick={() => router.push('/onboarding/sign-in')}
-          className="flex w-full items-center justify-center rounded-[28px] text-[17px] font-bold tracking-[0.3px] text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)] active:scale-[0.985]"
+          className={cn(TypeClass.onboardCta, 'flex w-full items-center justify-center rounded-[28px] tracking-[0.3px] text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)] active:scale-[0.985]')}
           style={{
             height: ONBOARDING_TOKENS.smallCtaHeight,
             backgroundColor: ORANGE,
@@ -140,7 +133,7 @@ function StepRow({
     >
       <div className="relative flex w-14 flex-col items-center">
         <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#F6C48B] bg-[#FAF3EB]">
-          <span className="text-lg font-extrabold text-[#F07B2A]">{`0${index + 1}`}</span>
+          <span className={cn(TypeClass.onboardStepNum, 'text-[#F07B2A]')}>{`0${index + 1}`}</span>
         </div>
         {!isLast && (
           <div className="absolute left-[27px] top-16 h-16 w-0.5 bg-[#F6C48B]" />
@@ -152,11 +145,9 @@ function StepRow({
           <div className="flex h-[50px] w-[50px] items-center justify-center rounded-full bg-[#FAEFE6]">
             <Icon size={22} color={ORANGE} strokeWidth={1.75} />
           </div>
-          <h3 className="text-[19px] font-bold leading-6 tracking-[-0.3px] text-[#1D2321]">
-            {step.title}
-          </h3>
+          <h3 className={cn(TypeClass.onboardStepTitle, 'text-[#1D2321]')}>{step.title}</h3>
         </div>
-        <p className="ml-[62px] whitespace-pre-line text-sm leading-[22px] text-[#6B7280]">
+        <p className={cn(TypeClass.onboardStepDesc, 'ml-[62px] whitespace-pre-line text-[#6B7280]')}>
           {step.desc}
         </p>
       </div>

@@ -1,0 +1,322 @@
+/**
+ * Seva Eats typography — mirrors sewa-eats React Native fontSize + fontWeight.
+ */
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue',
+    Helvetica, Arial, sans-serif;
+  --font-serif: ui-serif, 'New York', 'Iowan Old Style', 'Apple Garamond', Georgia,
+    'Times New Roman', serif;
+}
+
+/* Welcome */
+.type-hero-title {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.type-hero-subtitle {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+}
+
+.type-hero-cta {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+/* Onboarding */
+.type-onboard-headline {
+  font-size: 34px;
+  line-height: 40px;
+  font-weight: 800;
+  letter-spacing: -1.2px;
+}
+
+.type-onboard-subtext {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  letter-spacing: -0.2px;
+}
+
+.type-onboard-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.type-onboard-skip {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.type-onboard-cta {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.type-onboard-card-title {
+  font-size: 22px;
+  line-height: 27px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.type-onboard-rule {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.4px;
+}
+
+.type-onboard-check {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.type-onboard-step-num {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.type-onboard-step-title {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 24px;
+}
+
+.type-onboard-step-desc {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+}
+
+.type-onboard-pill {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.type-onboard-emphasis {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.type-quote-mark {
+  font-size: 46px;
+  line-height: 36px;
+  font-weight: 900;
+}
+
+/* Screen chrome */
+.type-screen-title {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.type-page-header {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.type-screen-subtitle {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.type-section-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.type-section-title-sm {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.type-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.type-label-sm {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.type-body {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.type-body-md {
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.type-body-sm {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.type-caption {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.type-caption-xs {
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.type-micro {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.type-btn {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.type-btn-sm {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Meals */
+.type-meal-name {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.type-meal-desc {
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 14px;
+}
+
+.type-meal-servings {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* Profile */
+.type-profile-section {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.type-profile-name {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.type-profile-email {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.type-meta-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.type-meta-value {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Tracking */
+.type-status-title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.type-status-subtitle {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.type-progress-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.type-progress-step {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.type-detail-label {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.type-detail-value {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Role selection (notebook) */
+.type-role-title {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.type-role-subtitle {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.type-role-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Sign-in */
+.type-signin-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.type-signin-title {
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 700;
+}
+
+.type-signin-subtitle {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+}
+
+.type-auth-btn {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}

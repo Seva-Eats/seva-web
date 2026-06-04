@@ -2,8 +2,10 @@
 
 import { Minus, Plus } from 'lucide-react';
 
-import type { MealOption } from '@/constants/meals';
 import { MealIcon } from '@/components/meals/MealIcon';
+import type { MealOption } from '@/constants/meals';
+import { TypeClass } from '@/constants/typography';
+import { cn } from '@/lib/cn';
 
 type MealGridCardProps = {
   meal: MealOption;
@@ -40,7 +42,9 @@ export function MealGridCard({
           >
             <Minus size={14} strokeWidth={3} />
           </button>
-          <span className="min-w-[16px] text-center text-sm font-bold text-white">{quantity}</span>
+          <span className={cn(TypeClass.body, 'min-w-[16px] text-center font-bold text-white')}>
+            {quantity}
+          </span>
           <button
             type="button"
             onClick={onIncrement}
@@ -68,9 +72,9 @@ export function MealGridCard({
         <MealIcon icon={meal.icon} color={meal.iconColor} />
       </div>
 
-      <p className="mt-2 text-center text-[15px] font-bold leading-tight text-[#1A1A1A]">{meal.name}</p>
-      <p className="mt-1 text-center text-[11px] leading-[15px] text-[#6B7280]">{meal.description}</p>
-      <p className="mt-2 text-center text-[11px] font-semibold text-[#F07B2A]">{meal.servings}</p>
+      <p className={cn(TypeClass.mealName, 'mt-2 text-center text-[#1A1A1A]')}>{meal.name}</p>
+      <p className={cn(TypeClass.mealDesc, 'mt-1 text-center text-[#6B7280]')}>{meal.description}</p>
+      <p className={cn(TypeClass.mealServings, 'mt-2 text-center text-[#F07B2A]')}>{meal.servings}</p>
     </div>
   );
 }

@@ -31,7 +31,7 @@ export function PageHeader({ title, backHref = '/request/location' }: { title: s
       >
         <ArrowLeft size={24} />
       </button>
-      <h1 className="text-lg font-bold" style={{ color: colors.text }}>
+      <h1 className="type-page-header" style={{ color: colors.text }}>
         {title}
       </h1>
       <div className="w-10" />

@@ -8,6 +8,8 @@ import BackNavButton from '@/components/onboarding/BackNavButton';
 import ProgressDots from '@/components/onboarding/ProgressDots';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import { ONBOARDING_COLORS } from '@/constants/onboarding';
+import { TypeClass } from '@/constants/typography';
+import { cn } from '@/lib/cn';
 import { useUser } from '@/context';
 import { getAuthRedirectUrl, hasSupabaseConfig, isNetworkTimeoutError } from '@/lib/auth/complete-auth-from-url';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -117,11 +119,9 @@ export default function SignInPage() {
 
         <div className="flex flex-1 flex-col items-center justify-center gap-3">
           <div className="w-full max-w-[360px] text-center">
-            <p className="text-[11px] font-bold tracking-[1.2px] text-[#F07B2A]">ACCOUNT</p>
-            <h1 className="mt-1 text-[28px] font-bold leading-[34px] text-[#1A1A1A]">
-              Sign in to continue
-            </h1>
-            <p className="mt-1 text-sm leading-5 text-[#6B7280]">
+            <p className={cn(TypeClass.signInEyebrow, 'text-[#F07B2A]')}>ACCOUNT</p>
+            <h1 className={cn(TypeClass.signInTitle, 'mt-1 text-[#1A1A1A]')}>Sign in to continue</h1>
+            <p className={cn(TypeClass.signInSubtitle, 'mt-1 text-[#6B7280]')}>
               Choose Apple, Google, or continue with email.
             </p>
           </div>
@@ -131,7 +131,7 @@ export default function SignInPage() {
               type="button"
               onClick={() => completeSession('apple')}
               disabled={isLoading !== null}
-              className="relative mb-2.5 flex min-h-[50px] w-full items-center justify-center rounded-[14px] border border-[#111] bg-[#111] text-[15px] font-bold text-white disabled:opacity-60 active:scale-[0.99]"
+              className={cn(TypeClass.authBtn, 'relative mb-2.5 flex min-h-[50px] w-full items-center justify-center rounded-[14px] border border-[#111] bg-[#111] text-white disabled:opacity-60 active:scale-[0.99]')}
             >
               <span className="absolute left-[18px]">
                 <AppleIcon />
@@ -143,7 +143,7 @@ export default function SignInPage() {
               type="button"
               onClick={() => completeSession('google')}
               disabled={isLoading !== null}
-              className="relative flex min-h-[50px] w-full items-center justify-center rounded-[14px] border border-[#111] bg-white text-[15px] font-bold text-[#111] disabled:opacity-60 active:scale-[0.99]"
+              className={cn(TypeClass.authBtn, 'relative flex min-h-[50px] w-full items-center justify-center rounded-[14px] border border-[#111] bg-white text-[#111] disabled:opacity-60 active:scale-[0.99]')}
             >
               <span className="absolute left-[18px]">
                 <GoogleIcon />
@@ -155,7 +155,7 @@ export default function SignInPage() {
               type="button"
               onClick={() => router.push('/onboarding/email?mode=signin')}
               disabled={isLoading !== null}
-              className="mt-2.5 flex min-h-12 w-full items-center justify-center rounded-[28px] text-sm font-bold text-white disabled:opacity-60 active:scale-[0.99]"
+              className={cn(TypeClass.onboardCta, 'mt-2.5 flex min-h-12 w-full items-center justify-center rounded-[28px] text-white disabled:opacity-60 active:scale-[0.99]')}
               style={{ backgroundColor: ORANGE }}
             >
               Continue with Email
@@ -163,7 +163,7 @@ export default function SignInPage() {
 
             <div className="my-2 flex items-center gap-2">
               <div className="h-px flex-1 bg-[#E5E7EB]" />
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-[#6B7280]">
+              <span className={cn(TypeClass.captionXs, 'font-semibold uppercase tracking-wide text-[#6B7280]')}>
                 or
               </span>
               <div className="h-px flex-1 bg-[#E5E7EB]" />
@@ -173,13 +173,13 @@ export default function SignInPage() {
               type="button"
               onClick={() => router.push('/onboarding/email?mode=signup')}
               disabled={isLoading !== null}
-              className="flex min-h-[46px] w-full items-center justify-center rounded-[28px] border bg-transparent text-sm font-bold disabled:opacity-60 active:scale-[0.99]"
+              className={cn(TypeClass.body, 'flex min-h-[46px] w-full items-center justify-center rounded-[28px] border bg-transparent font-bold disabled:opacity-60 active:scale-[0.99]')}
               style={{ borderColor: ORANGE, color: ORANGE }}
             >
               Sign Up with Email
             </button>
 
-            <p className="mt-2 px-1 text-center text-xs leading-[18px] text-[#6B7280]">
+            <p className={cn(TypeClass.caption, 'mt-2 px-1 text-center text-[#6B7280]')}>
               Password sign-in continues on the next page.
             </p>
 
@@ -193,7 +193,7 @@ export default function SignInPage() {
           </div>
         </div>
 
-        <p className="px-2 text-center text-xs leading-[18px] text-[#6B7280]">
+        <p className={cn(TypeClass.caption, 'px-2 text-center text-[#6B7280]')}>
           By continuing, you agree to use Seva Eats respectfully and follow local community
           guidelines.
         </p>

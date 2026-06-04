@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 
 import { AppShell } from '@/components/AppShell';
 import { LogoMark } from '@/components/LogoMark';
+import { TypeClass } from '@/constants/typography';
 import { useThemeColors } from '@/hooks/use-theme-colors';
+import { cn } from '@/lib/cn';
 
 export default function OnboardingWelcomePage() {
   const router = useRouter();
@@ -32,15 +34,15 @@ export default function OnboardingWelcomePage() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex flex-col items-center px-2 text-center"
           >
-            <h1
-              className="text-2xl font-extrabold leading-8"
-              style={{ color: colors.text }}
-            >
+            <h1 className={cn(TypeClass.heroTitle, 'text-center')} style={{ color: colors.text }}>
               Request a free langar
               <br />
               meal near you
             </h1>
-            <p className="mt-2 max-w-[320px] text-sm" style={{ color: colors.mutedText }}>
+            <p
+              className={cn(TypeClass.heroSubtitle, 'mt-2 max-w-[320px] text-center')}
+              style={{ color: colors.mutedText }}
+            >
               Food is shared with dignity. No payment, no paperwork.
             </p>
           </motion.div>
@@ -55,7 +57,7 @@ export default function OnboardingWelcomePage() {
           <button
             type="button"
             onClick={() => router.push('/onboarding/slide1')}
-            className="w-full rounded-[28px] py-3.5 text-base font-extrabold text-white shadow-md active:scale-[0.99]"
+            className={cn('type-hero-cta w-full rounded-[28px] py-3.5 text-white shadow-md active:scale-[0.99]')}
             style={{ backgroundColor: colors.accent }}
           >
             Get Started

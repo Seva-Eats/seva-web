@@ -6,6 +6,8 @@ import { Suspense, useState } from 'react';
 import { AppShell } from '@/components/AppShell';
 import BackNavButton from '@/components/onboarding/BackNavButton';
 import { ONBOARDING_COLORS } from '@/constants/onboarding';
+import { TypeClass } from '@/constants/typography';
+import { cn } from '@/lib/cn';
 import { useUser } from '@/context';
 import { hasSupabaseConfig, isNetworkTimeoutError } from '@/lib/auth/complete-auth-from-url';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -125,11 +127,13 @@ function EmailAuthContent() {
       <div className="flex min-h-screen flex-col px-6 pb-8 pt-2">
         <BackNavButton onPress={() => router.push('/onboarding/sign-in')} />
         <div className="mt-6 flex flex-1 flex-col">
-          <p className="text-[11px] font-bold tracking-[1.2px] text-[#F07B2A]">EMAIL</p>
-          <h1 className="mt-1 text-[28px] font-bold text-[#1A1A1A]">
+          <p className={cn(TypeClass.signInEyebrow, 'text-[#F07B2A]')}>EMAIL</p>
+          <h1 className={cn(TypeClass.signInTitle, 'mt-1 text-[#1A1A1A]')}>
             {mode === 'signup' ? 'Create your account' : 'Sign in with email'}
           </h1>
-          <p className="mt-1 text-sm text-[#6B7280]">Enter your email and password to continue.</p>
+          <p className={cn(TypeClass.signInSubtitle, 'mt-1 text-[#6B7280]')}>
+            Enter your email and password to continue.
+          </p>
 
           <div className="mt-6 rounded-2xl border border-[#E8E3DA] bg-[#F7F4EF] p-4">
             <div className="space-y-3">
@@ -138,14 +142,14 @@ function EmailAuthContent() {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-[#E8E3DA] bg-white px-4 py-3 text-[#1A1A1A] outline-none focus:border-[#F07B2A]"
+                className={cn('type-body-md w-full rounded-xl border border-[#E8E3DA] bg-white px-4 py-3 text-[#1A1A1A] outline-none focus:border-[#F07B2A]')}
               />
               <input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-[#E8E3DA] bg-white px-4 py-3 text-[#1A1A1A] outline-none focus:border-[#F07B2A]"
+                className={cn('type-body-md w-full rounded-xl border border-[#E8E3DA] bg-white px-4 py-3 text-[#1A1A1A] outline-none focus:border-[#F07B2A]')}
               />
             </div>
 
@@ -153,7 +157,7 @@ function EmailAuthContent() {
               type="button"
               onClick={handleEmailPasswordAuth}
               disabled={isLoading}
-              className="mt-4 flex min-h-[56px] w-full items-center justify-center rounded-[28px] text-[17px] font-bold text-white disabled:opacity-60"
+              className={cn(TypeClass.onboardCta, 'mt-4 flex min-h-[56px] w-full items-center justify-center rounded-[28px] text-white disabled:opacity-60')}
               style={{ backgroundColor: ONBOARDING_COLORS.accent }}
             >
               {isLoading ? 'Please wait...' : mode === 'signup' ? 'Create account' : 'Sign In'}

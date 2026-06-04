@@ -8,7 +8,9 @@ import { AppShell } from '@/components/AppShell';
 import { RequestFlowHeader } from '@/components/request/RequestFlowHeader';
 import { DeliveryProgressStepper } from '@/components/tracking/DeliveryProgressStepper';
 import { RequestDetailsCard } from '@/components/tracking/RequestDetailsCard';
+import { TypeClass } from '@/constants/typography';
 import { REQUEST_STATUS_LABELS, useRequests } from '@/context';
+import { cn } from '@/lib/cn';
 
 export default function RequestTrackingPage() {
   const { id } = useParams<{ id: string }>();
@@ -46,8 +48,8 @@ export default function RequestTrackingPage() {
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#10B981]">
               <span className="text-4xl font-bold text-white">✓</span>
             </div>
-            <h2 className="mt-4 text-2xl font-bold text-[#059669]">Meal Delivered!</h2>
-            <p className="mt-2 max-w-[300px] text-sm text-[#6B7280]">
+            <h2 className={cn(TypeClass.statusTitle, 'mt-4 text-2xl text-[#059669]')}>Meal Delivered!</h2>
+            <p className={cn(TypeClass.statusSubtitle, 'mt-2 max-w-[300px] text-[#6B7280]')}>
               Thank you for using Seva Eats. We hope you enjoy your meal!
             </p>
           </div>
@@ -65,7 +67,7 @@ export default function RequestTrackingPage() {
           <div className="fixed bottom-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 px-4 pb-8">
             <Link
               href="/request/location"
-              className="flex w-full items-center justify-center rounded-[28px] bg-[#F07B2A] py-4 text-base font-bold text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)]"
+              className={cn(TypeClass.btn, 'flex w-full items-center justify-center rounded-[28px] bg-[#F07B2A] py-4 font-bold text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)]')}
             >
               Back to Home
             </Link>
@@ -85,11 +87,11 @@ export default function RequestTrackingPage() {
         />
 
         <div className="px-4 pt-4">
-          <h2 className="text-2xl font-bold text-[#1A1A1A]">
+          <h2 className={cn(TypeClass.statusTitle, 'text-2xl text-[#1A1A1A]')}>
             {request ? REQUEST_STATUS_LABELS[request.status] : 'Finding a Driver'}
           </h2>
           {!isComplete && (
-            <p className="mt-1 flex items-center gap-1.5 text-sm text-[#6B7280]">
+            <p className={cn(TypeClass.statusSubtitle, 'mt-1 flex items-center gap-1.5 text-[#6B7280]')}>
               <span className="text-[#F07B2A]">⏱</span>
               Estimated arrival:{' '}
               <span className="font-semibold text-[#1A1A1A]">
@@ -108,7 +110,7 @@ export default function RequestTrackingPage() {
                     <Store size={36} className="text-[#F07B2A]" />
                   </div>
                 </div>
-                <div className="flex items-center gap-2 border-t border-[#E8E3DA] bg-white px-4 py-3 text-xs">
+                <div className={cn(TypeClass.captionXs, 'flex items-center gap-2 border-t border-[#E8E3DA] bg-white px-4 py-3')}>
                   <MapPin size={14} className="text-[#F07B2A]" />
                   <span className="font-semibold text-[#1A1A1A]">
                     {request.pickupLocationName ?? 'Brampton Hub'}
@@ -129,8 +131,8 @@ export default function RequestTrackingPage() {
                     🙂
                   </div>
                   <div>
-                    <p className="text-xs text-[#6B7280]">Need help?</p>
-                    <p className="font-bold text-[#1A1A1A]">Contact support</p>
+                    <p className={cn(TypeClass.caption, 'text-[#6B7280]')}>Need help?</p>
+                    <p className={cn(TypeClass.body, 'font-semibold text-[#1A1A1A]')}>Contact support</p>
                   </div>
                 </div>
                 <Link
@@ -168,7 +170,7 @@ export default function RequestTrackingPage() {
             <button
               type="button"
               onClick={handleCancel}
-              className="w-full rounded-[28px] border-2 border-[#EF4444] bg-white py-3.5 text-base font-bold text-[#EF4444] active:scale-[0.99]"
+              className={cn(TypeClass.btnSm, 'w-full rounded-[28px] border-2 border-[#EF4444] bg-white py-3.5 font-semibold text-[#EF4444] active:scale-[0.99]')}
             >
               Cancel Request
             </button>

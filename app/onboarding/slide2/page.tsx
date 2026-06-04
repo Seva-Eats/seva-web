@@ -7,6 +7,8 @@ import { AppShell } from '@/components/AppShell';
 import BackNavButton from '@/components/onboarding/BackNavButton';
 import ProgressDots from '@/components/onboarding/ProgressDots';
 import { ONBOARDING_TOKENS } from '@/constants/onboarding';
+import { TypeClass } from '@/constants/typography';
+import { cn } from '@/lib/cn';
 import { useUser } from '@/context';
 import { setOnboardingCompleted } from '@/lib/storage';
 
@@ -28,13 +30,9 @@ function RoleOption({
       className="group flex w-full items-center justify-between border-b border-[#E8E3DA]/80 px-1 py-8 text-left transition-colors hover:bg-[#FDF8F3]/60 active:bg-[#FFF4EC]"
     >
       <div className="flex flex-col gap-1.5">
-        <span className="font-serif text-[32px] font-bold leading-[1.1] tracking-[-0.5px] text-[#15181C]">
-          {title}
-        </span>
-        <span className="font-serif text-lg italic text-[#6B7280]">{subtitle}</span>
-        <span className="mt-3 text-[10px] font-medium uppercase tracking-[2px] text-[#9CA3AF]">
-          {label}
-        </span>
+        <span className={cn(TypeClass.roleTitle, 'text-[#15181C]')}>{title}</span>
+        <span className={cn(TypeClass.roleSubtitle, 'text-[#6B7280]')}>{subtitle}</span>
+        <span className={cn(TypeClass.roleLabel, 'mt-3 text-[#9CA3AF]')}>{label}</span>
       </div>
       <ArrowRight
         size={22}
@@ -86,24 +84,15 @@ export default function Slide2RolePage() {
           <button
             type="button"
             onClick={skip}
-            className="min-w-10 text-right text-[15px] font-medium text-[#6B7280]"
+            className={cn(TypeClass.onboardSkip, 'min-w-10 text-right text-[#6B7280]')}
           >
             Skip
           </button>
         </div>
 
         <div className="flex flex-1 flex-col justify-center">
-          <p className="mb-2 text-center text-[11px] font-bold tracking-[1.4px] text-[#F07B2A]">
-            GET STARTED
-          </p>
-          <h1
-            className="mb-8 text-center font-extrabold text-[#15181C]"
-            style={{
-              fontSize: ONBOARDING_TOKENS.titleSize,
-              lineHeight: `${ONBOARDING_TOKENS.titleLineHeight}px`,
-              letterSpacing: '-0.8px',
-            }}
-          >
+          <p className={cn(TypeClass.onboardBadge, 'mb-2 text-center text-[#F07B2A]')}>GET STARTED</p>
+          <h1 className={cn(TypeClass.onboardHeadline, 'mb-8 text-center text-[#15181C]')}>
             How can we help?
           </h1>
 

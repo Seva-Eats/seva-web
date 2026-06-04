@@ -8,6 +8,8 @@ import { AppShell } from '@/components/AppShell';
 import { MealGridCard } from '@/components/meals/MealGridCard';
 import { RequestFlowHeader } from '@/components/request/RequestFlowHeader';
 import { mealOptions, type MealOption } from '@/constants/meals';
+import { TypeClass } from '@/constants/typography';
+import { cn } from '@/lib/cn';
 
 function NewRequestContent() {
   const router = useRouter();
@@ -75,34 +77,34 @@ function NewRequestContent() {
           <div className="mb-5 flex gap-3 rounded-2xl border border-[#FED7AA] bg-[#FFF2E6] p-4">
             <Bike size={24} className="shrink-0 text-[#F07B2A]" />
             <div>
-              <p className="text-sm font-bold text-[#C2410C]">Langar is free for everyone</p>
-              <p className="mt-0.5 text-[13px] leading-[18px] text-[#EA580C]">
+              <p className={cn(TypeClass.label, 'text-[#C2410C]')}>Langar is free for everyone</p>
+              <p className={cn(TypeClass.bodySm, 'mt-0.5 text-[#EA580C]')}>
                 A volunteer will deliver your meal to a partner shelter or community drop-off
               </p>
             </div>
           </div>
 
-          <p className="mb-3 text-base font-bold text-[#1A1A1A]">Main Courses</p>
+          <p className={cn(TypeClass.sectionTitle, 'mb-3 text-[#1A1A1A]')}>Main Courses</p>
           {renderGrid(mainMeals)}
 
-          <p className="mb-3 mt-6 text-base font-bold text-[#1A1A1A]">Desserts</p>
+          <p className={cn(TypeClass.sectionTitle, 'mb-3 mt-6 text-[#1A1A1A]')}>Desserts</p>
           {renderGrid(desserts)}
         </div>
 
         {totalMeals > 0 && (
           <div className="fixed bottom-0 left-1/2 flex w-full max-w-[430px] -translate-x-1/2 items-center justify-between border-t border-[#E8E3DA] bg-white px-4 py-4 pb-8">
             <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F07B2A] text-sm font-bold text-white">
+              <span className={cn(TypeClass.body, 'flex h-8 w-8 items-center justify-center rounded-full bg-[#F07B2A] font-bold text-white')}>
                 {totalMeals}
               </span>
-              <span className="text-sm text-[#6B7280]">
+              <span className={cn(TypeClass.body, 'text-[#6B7280]')}>
                 meal{totalMeals === 1 ? '' : 's'} selected
               </span>
             </div>
             <button
               type="button"
               onClick={handleContinue}
-              className="flex items-center gap-2 rounded-full bg-[#F07B2A] px-6 py-3 text-base font-bold text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)] active:scale-[0.99]"
+              className={cn(TypeClass.btn, 'flex items-center gap-2 rounded-full bg-[#F07B2A] px-6 py-3 text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)] active:scale-[0.99]')}
             >
               Continue
               <ArrowRight size={18} color="#fff" />

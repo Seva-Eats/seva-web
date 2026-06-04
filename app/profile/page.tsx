@@ -18,7 +18,9 @@ import { useState } from 'react';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { AUTH_PROVIDER_LABELS } from '@/constants/auth';
+import { TypeClass } from '@/constants/typography';
 import { useLocation, useUser } from '@/context';
+import { cn } from '@/lib/cn';
 import * as storage from '@/lib/storage';
 
 const MAX_PHONE_DIGITS = 10;
@@ -114,33 +116,31 @@ export default function ProfilePage() {
 
         <div className="space-y-6 p-4">
           <section>
-            <h2 className="mb-3 text-base font-bold text-[#1A1A1A]">Account</h2>
+            <h2 className={cn(TypeClass.profileSection, 'mb-3 text-[#1A1A1A]')}>Account</h2>
             <div className="rounded-2xl border border-[#E8E3DA] bg-white p-4">
               <div className="flex items-center gap-3 border-b border-[#F3F4F6] pb-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#F07B2A] text-2xl font-bold text-white">
+                <div className={cn(TypeClass.profileName, 'flex h-14 w-14 items-center justify-center rounded-full bg-[#F07B2A] text-white')}>
                   {avatarInitial}
                 </div>
                 <div>
-                  <p className="font-bold text-[#1A1A1A]">{name || 'Guest'}</p>
-                  <p className="text-sm text-[#6B7280]">{user?.email ?? 'Not signed in'}</p>
+                  <p className={cn(TypeClass.profileName, 'text-[#1A1A1A]')}>{name || 'Guest'}</p>
+                  <p className={cn(TypeClass.profileEmail, 'text-[#6B7280]')}>
+                    {user?.email ?? 'Not signed in'}
+                  </p>
                 </div>
               </div>
 
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <div className="rounded-xl border border-[#F3F4F6] bg-[#FAFAFA] p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">
-                    Status
-                  </p>
-                  <p className="mt-0.5 font-bold text-[#1A1A1A]">
+                  <p className={cn(TypeClass.metaLabel, 'text-[#9CA3AF]')}>Status</p>
+                  <p className={cn(TypeClass.metaValue, 'mt-0.5 text-[#1A1A1A]')}>
                     {user?.isAuthenticated ? 'Signed in' : 'Guest'}
                   </p>
                 </div>
                 <div className="rounded-xl border border-[#F3F4F6] bg-[#FAFAFA] p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF]">
-                    Provider
-                  </p>
+                  <p className={cn(TypeClass.metaLabel, 'text-[#9CA3AF]')}>Provider</p>
                   <div className="mt-0.5 flex items-center justify-between">
-                    <p className="font-bold text-[#1A1A1A]">{providerLabel}</p>
+                    <p className={cn(TypeClass.metaValue, 'text-[#1A1A1A]')}>{providerLabel}</p>
                     <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#F07B2A]">
                       <Mail size={14} color="#fff" />
                     </span>
@@ -148,14 +148,14 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <p className="mt-3 text-xs text-[#6B7280]">
+              <p className={cn(TypeClass.caption, 'mt-3 text-[#6B7280]')}>
                 Signed in through onboarding. Sign out to switch accounts.
               </p>
 
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="mt-3 flex w-full items-center justify-center gap-2 py-2 text-sm font-bold text-[#EF4444]"
+                className={cn(TypeClass.body, 'mt-3 flex w-full items-center justify-center gap-2 py-2 font-semibold text-[#EF4444]')}
               >
                 <LogOut size={18} />
                 Sign Out
@@ -164,7 +164,7 @@ export default function ProfilePage() {
           </section>
 
           <section>
-            <h2 className="mb-3 text-base font-bold text-[#1A1A1A]">Personal Information</h2>
+            <h2 className={cn(TypeClass.profileSection, 'mb-3 text-[#1A1A1A]')}>Personal Information</h2>
             <div className="space-y-3">
               <ProfileField label="Full Name *" value={name} onChange={setName} />
               <ProfileField
@@ -175,13 +175,13 @@ export default function ProfilePage() {
               />
               <div>
                 <ProfileField label="Serving Size" value={servingSize} onChange={setServingSize} />
-                <p className="mt-1 text-xs text-[#6B7280]">Number of people (1-3)</p>
+                <p className={cn(TypeClass.caption, 'mt-1 text-[#6B7280]')}>Number of people (1-3)</p>
               </div>
             </div>
           </section>
 
           <section>
-            <h2 className="mb-3 text-base font-bold text-[#1A1A1A]">Quick actions</h2>
+            <h2 className={cn(TypeClass.profileSection, 'mb-3 text-[#1A1A1A]')}>Quick actions</h2>
             <div className="grid grid-cols-2 gap-3">
               <Link
                 href="/requests/active"
@@ -190,7 +190,9 @@ export default function ProfilePage() {
                 <span className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFF4EC]">
                   <ClipboardList size={24} className="text-[#F07B2A]" />
                 </span>
-                <span className="text-center text-sm font-bold text-[#1A1A1A]">Active requests</span>
+                <span className={cn(TypeClass.body, 'text-center font-semibold text-[#1A1A1A]')}>
+                  Active requests
+                </span>
               </Link>
               <Link
                 href="/requests/history"
@@ -199,7 +201,9 @@ export default function ProfilePage() {
                 <span className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFF4EC]">
                   <History size={24} className="text-[#F07B2A]" />
                 </span>
-                <span className="text-center text-sm font-bold text-[#1A1A1A]">Request history</span>
+                <span className={cn(TypeClass.body, 'text-center font-semibold text-[#1A1A1A]')}>
+                  Request history
+                </span>
               </Link>
               <Link
                 href="/locations"
@@ -208,7 +212,9 @@ export default function ProfilePage() {
                 <span className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFF4EC]">
                   <MapPin size={24} className="text-[#F07B2A]" />
                 </span>
-                <span className="text-center text-sm font-bold text-[#1A1A1A]">Nearby locations</span>
+                <span className={cn(TypeClass.body, 'text-center font-semibold text-[#1A1A1A]')}>
+                  Nearby locations
+                </span>
               </Link>
               <Link
                 href="/support"
@@ -217,27 +223,29 @@ export default function ProfilePage() {
                 <span className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFF4EC]">
                   <HelpCircle size={24} className="text-[#F07B2A]" />
                 </span>
-                <span className="text-center text-sm font-bold text-[#1A1A1A]">Help & support</span>
+                <span className={cn(TypeClass.body, 'text-center font-semibold text-[#1A1A1A]')}>
+                  Help & support
+                </span>
               </Link>
             </div>
           </section>
 
           <section>
-            <h2 className="mb-3 text-base font-bold text-[#1A1A1A]">Home Address</h2>
+            <h2 className={cn(TypeClass.profileSection, 'mb-3 text-[#1A1A1A]')}>Home Address</h2>
             <div className="relative mb-2">
               <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#F07B2A]" />
               <input
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Enter a shelter or partner address"
-                className="w-full rounded-xl border border-[#E8E3DA] bg-white py-3 pl-11 pr-4 text-sm text-[#1A1A1A] outline-none focus:border-[#F07B2A]"
+                className={cn('type-body-md w-full rounded-xl border border-[#E8E3DA] bg-white py-3 pl-11 pr-4 text-[#1A1A1A] outline-none focus:border-[#F07B2A]')}
               />
             </div>
 
             <button
               type="button"
               onClick={handleQuickAddLocation}
-              className="mb-2 flex w-full items-center justify-center gap-2 rounded-xl border border-[#F07B2A] py-2.5 text-sm font-semibold text-[#F07B2A] active:scale-[0.99]"
+              className={cn(TypeClass.label, 'mb-2 flex w-full items-center justify-center gap-2 rounded-xl border border-[#F07B2A] py-2.5 text-[#F07B2A] active:scale-[0.99]')}
             >
               <Crosshair size={18} />
               Quick add current location
@@ -246,7 +254,7 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={() => setShowMap((v) => !v)}
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-[#E8E3DA] bg-white py-2.5 text-sm font-semibold text-[#1A1A1A]"
+              className={cn(TypeClass.label, 'mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-[#E8E3DA] bg-white py-2.5 text-[#1A1A1A]')}
             >
               <Map size={18} className="text-[#F07B2A]" />
               {showMap ? 'Hide map' : 'Show map'}
@@ -259,7 +267,7 @@ export default function ProfilePage() {
                     <MapPin size={40} className="text-[#F07B2A]" fill="#F07B2A" strokeWidth={1} />
                   </div>
                 </div>
-                <p className="mt-2 text-center text-xs text-[#6B7280]">
+                <p className={cn(TypeClass.caption, 'mt-2 text-center text-[#6B7280]')}>
                   Tap the map or drag the pin to set your address location.
                 </p>
               </>
@@ -270,7 +278,7 @@ export default function ProfilePage() {
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="w-full rounded-[28px] bg-[#F07B2A] py-4 text-base font-bold text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)] disabled:opacity-60"
+            className={cn(TypeClass.btn, 'w-full rounded-[28px] bg-[#F07B2A] py-4 font-bold text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)] disabled:opacity-60')}
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
           </button>
@@ -278,7 +286,7 @@ export default function ProfilePage() {
           <button
             type="button"
             onClick={handleClearData}
-            className="flex w-full items-center justify-center gap-2 py-2 text-sm font-bold text-[#EF4444]"
+            className={cn(TypeClass.body, 'flex w-full items-center justify-center gap-2 py-2 font-semibold text-[#EF4444]')}
           >
             <Trash2 size={18} />
             Clear All Data
@@ -302,12 +310,12 @@ function ProfileField({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-sm text-[#6B7280]">{label}</label>
+      <label className={cn(TypeClass.label, 'mb-1 block text-[#6B7280]')}>{label}</label>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-[#E8E3DA] bg-[#FDF8F3] px-4 py-3 text-[#1A1A1A] outline-none focus:border-[#F07B2A]"
+        className={cn('type-body-md w-full rounded-xl border border-[#E8E3DA] bg-[#FDF8F3] px-4 py-3 text-[#1A1A1A] outline-none focus:border-[#F07B2A]')}
       />
     </div>
   );

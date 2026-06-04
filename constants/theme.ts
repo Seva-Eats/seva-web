@@ -55,8 +55,8 @@ export const Radii = {
 };
 
 export const Fonts = {
-  sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-  serif: "Georgia, 'Times New Roman', serif",
-  rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-  mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+  sans: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif',
+  serif: 'ui-serif, "New York", "Iowan Old Style", "Apple Garamond", Georgia, "Times New Roman", serif',
+  rounded: '"SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Hiragino Maru Gothic ProN", Meiryo, sans-serif',
+  mono: 'SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
 };
