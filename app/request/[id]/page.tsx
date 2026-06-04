@@ -3,6 +3,7 @@
 import { Car, Home, MapPin, MessageCircle, Store } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 import { AppShell } from '@/components/AppShell';
 import { RequestFlowHeader } from '@/components/request/RequestFlowHeader';
@@ -11,6 +12,11 @@ import { RequestDetailsCard } from '@/components/tracking/RequestDetailsCard';
 import { TypeClass } from '@/constants/typography';
 import { REQUEST_STATUS_LABELS, useRequests } from '@/context';
 import { cn } from '@/lib/cn';
+import {
+  markTrackingNotificationsPrompted,
+  requestTrackingNotificationsPermission,
+  shouldPromptForTrackingNotifications,
+} from '@/lib/notifications';
 
 export default function RequestTrackingPage() {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +39,35 @@ export default function RequestTrackingPage() {
       router.push('/requests/active');
     }
   };
+
+  useEffect(() => {
+    let active = true;
+
+    const promptForNotifications = async () => {
+      if (!request) return;
+      if (request.status === 'delivered' || request.status === 'cancelled') return;
+
+      const shouldPrompt = await shouldPromptForTrackingNotifications();
+      if (!shouldPrompt || !active) return;
+
+      const wantsNotifications = window.confirm(
+        'Enable delivery updates?\n\nWe can notify you when your meal is delivered.'
+      );
+      if (!active) return;
+
+      if (wantsNotifications) {
+        await requestTrackingNotificationsPermission();
+      } else {
+        await markTrackingNotificationsPrompted(false);
+      }
+    };
+
+    void promptForNotifications();
+
+    return () => {
+      active = false;
+    };
+  }, [request]);
 
   if (isDelivered) {
     return (

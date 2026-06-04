@@ -25,8 +25,6 @@ export async function removeItem(key: string): Promise<void> {
   }
 }
 
-export const ONBOARDING_COOKIE_KEY = 'seva-onboarding-completed';
-
 export function syncOnboardingCookie(completed: boolean) {
   if (typeof document === 'undefined') return;
   if (completed) {
@@ -45,3 +43,4 @@ export async function setOnboardingCompleted(completed: boolean) {
   }
   syncOnboardingCookie(completed);
 }
+import { ONBOARDING_COOKIE_KEY } from '@/constants/storage';

@@ -13,6 +13,7 @@ import { cn } from '@/lib/cn';
 import { useUser } from '@/context';
 import { getAuthRedirectUrl, hasSupabaseConfig, isNetworkTimeoutError } from '@/lib/auth/complete-auth-from-url';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getHomePathForRole, getStoredUserRole } from '@/lib/navigation/role-paths';
 import { setOnboardingCompleted } from '@/lib/storage';
 
 type OAuthProvider = 'google' | 'apple';
@@ -62,9 +63,9 @@ export default function SignInPage() {
 
   useEffect(() => {
     if (user?.isAuthenticated) {
-      router.replace('/request/location');
+      router.replace(getHomePathForRole(user.role));
     }
-  }, [router, user?.isAuthenticated]);
+  }, [router, user?.isAuthenticated, user?.role]);
 
   const completeSession = async (provider: OAuthProvider) => {
     const supabase = getSupabaseBrowserClient();
@@ -104,7 +105,7 @@ export default function SignInPage() {
   const handleGuest = async () => {
     await mockSignIn('guest', { name: 'Guest User' });
     await setOnboardingCompleted(true);
-    router.replace('/request/location');
+    router.replace(getHomePathForRole(getStoredUserRole()));
   };
 
   return (

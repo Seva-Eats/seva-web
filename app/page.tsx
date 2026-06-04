@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 
 import { ONBOARDING_STORAGE_KEY } from '@/constants/onboarding';
 import { useUser } from '@/context';
+import { getHomePathForRole } from '@/lib/navigation/role-paths';
 import * as storage from '@/lib/storage';
 
 export default function HomePage() {
@@ -28,9 +29,9 @@ export default function HomePage() {
         return;
       }
 
-      router.replace('/request/location');
+      router.replace(getHomePathForRole(user?.role));
     });
-  }, [router, isUserLoading, user?.isAuthenticated]);
+  }, [router, isUserLoading, user?.isAuthenticated, user?.role]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#FFF8F0]">

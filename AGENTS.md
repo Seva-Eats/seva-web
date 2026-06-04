@@ -72,8 +72,10 @@ components/
 
 ## User roles
 
-- `recipient` — meal request flow (`/request/location` → meals → details → tracking).
-- `dasher` — volunteer; set via onboarding slide 2. Route differences may expand later; still store role in `UserContext`.
+- `recipient` — meal request flow (`/request/location` → meals → details → tracking). Profile: `/profile`.
+- `dasher` — volunteer (sevadar); set via onboarding slide 2. Home: `/seva` (active route + stops). Profile: `/seva/profile` (vehicle, notifications, role switch — not serving size / home address).
+- Role routing: `lib/navigation/role-paths.ts` + `AuthGate` (volunteers cannot access `/request/*`; recipients cannot access `/seva/*`).
+- Post-auth redirect uses stored role from `user-profile` localStorage.
 
 ## Do
 

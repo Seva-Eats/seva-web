@@ -5,6 +5,12 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 
 import { ONBOARDING_STORAGE_KEY } from '@/constants/onboarding';
 import { useUser } from '@/context';
+import {
+  getHomePathForRole,
+  isRecipientPath,
+  isVolunteerPath,
+  isSharedPath,
+} from '@/lib/navigation/role-paths';
 import * as storage from '@/lib/storage';
 
 const AUTH_PATHS = ['/auth/callback'];
@@ -71,9 +77,32 @@ export function AuthGate({ children }: { children: ReactNode }) {
     }
 
     if (hasOnboarded && isAuthenticated && inOnboarding && isLateOnboardingRoute(pathname)) {
-      router.replace('/request/location');
+      router.replace(getHomePathForRole(user?.role));
+      return;
     }
-  }, [isReady, hasOnboarded, isUserLoading, pathname, router, user?.isAuthenticated]);
+
+    if (hasOnboarded && isAuthenticated && user?.role && !isSharedPath(pathname)) {
+      if (user.role === 'dasher' && isRecipientPath(pathname)) {
+        router.replace('/seva');
+        return;
+      }
+      if (user.role === 'recipient' && isVolunteerPath(pathname)) {
+        router.replace('/request/location');
+        return;
+      }
+      if (user.role === 'dasher' && pathname === '/profile') {
+        router.replace('/seva/profile');
+      }
+    }
+  }, [
+    isReady,
+    hasOnboarded,
+    isUserLoading,
+    pathname,
+    router,
+    user?.isAuthenticated,
+    user?.role,
+  ]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

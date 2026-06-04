@@ -3,24 +3,27 @@
 import {
   ClipboardList,
   Crosshair,
+  HandHelping,
   History,
   LogOut,
   Mail,
   Map,
   MapPin,
   HelpCircle,
+  Soup,
   Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { AUTH_PROVIDER_LABELS } from '@/constants/auth';
 import { TypeClass } from '@/constants/typography';
-import { useLocation, useUser } from '@/context';
+import { useLocation, useUser, type UserRole } from '@/context';
 import { cn } from '@/lib/cn';
+import { getHomePathForRole } from '@/lib/navigation/role-paths';
 import * as storage from '@/lib/storage';
 
 const MAX_PHONE_DIGITS = 10;
@@ -35,7 +38,7 @@ const formatPhoneNumber = (value: string): string => {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, updateProfile, clearProfile, signOut } = useUser();
+  const { user, updateProfile, setRole, clearProfile, signOut } = useUser();
   const { userLocation, refreshLocation } = useLocation();
 
   const [name, setName] = useState(user?.name ?? '');
@@ -44,6 +47,23 @@ export default function ProfilePage() {
   const [servingSize, setServingSize] = useState(String(user?.servingSize ?? 1));
   const [showMap, setShowMap] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (user?.role === 'dasher') {
+      router.replace('/seva/profile');
+    }
+  }, [user?.role, router]);
+
+  const handleRoleChange = async (role: UserRole) => {
+    if (role === user?.role) return;
+    const message =
+      role === 'recipient'
+        ? 'Switch to recipient? You will request meals instead of delivering.'
+        : 'Switch to volunteer? You will see delivery routes instead of meal requests.';
+    if (!confirm(message)) return;
+    await setRole(role);
+    router.replace(getHomePathForRole(role));
+  };
 
   const servingSizeValue = Math.min(3, Math.max(1, parseInt(servingSize, 10) || 1));
   const avatarInitial = (user?.name?.trim()?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
@@ -177,6 +197,41 @@ export default function ProfilePage() {
                 <ProfileField label="Serving Size" value={servingSize} onChange={setServingSize} />
                 <p className={cn(TypeClass.caption, 'mt-1 text-[#6B7280]')}>Number of people (1-3)</p>
               </div>
+            </div>
+          </section>
+
+          <section>
+            <h2 className={cn(TypeClass.profileSection, 'mb-3 text-[#1A1A1A]')}>Your path</h2>
+            <p className={cn(TypeClass.caption, 'mb-3 text-[#6B7280]')}>
+              Switch if you want to volunteer instead of requesting meals.
+            </p>
+            <div className="mb-6 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => handleRoleChange('recipient')}
+                className={cn(
+                  'flex flex-col items-center rounded-2xl border px-3 py-4',
+                  user?.role === 'recipient'
+                    ? 'border-[#F07B2A] bg-[#FFF7ED]'
+                    : 'border-[#E8E3DA] bg-white'
+                )}
+              >
+                <Soup size={22} className="text-[#F07B2A]" />
+                <span className={cn(TypeClass.label, 'mt-2 text-[#1A1A1A]')}>Recipient</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRoleChange('dasher')}
+                className={cn(
+                  'flex flex-col items-center rounded-2xl border px-3 py-4',
+                  user?.role === 'dasher'
+                    ? 'border-[#F07B2A] bg-[#FFF7ED]'
+                    : 'border-[#E8E3DA] bg-white'
+                )}
+              >
+                <HandHelping size={22} className="text-[#F07B2A]" />
+                <span className={cn(TypeClass.label, 'mt-2 text-[#1A1A1A]')}>Volunteer</span>
+              </button>
             </div>
           </section>
 

@@ -15,6 +15,7 @@ import {
   isNetworkTimeoutError,
 } from '@/lib/auth/complete-auth-from-url';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getHomePathForRole, getStoredUserRole } from '@/lib/navigation/role-paths';
 import { setOnboardingCompleted } from '@/lib/storage';
 
 const CODE_LENGTH = 6;
@@ -43,7 +44,7 @@ function VerifyContent() {
       email: authUser.email,
     });
     await setOnboardingCompleted(true);
-    router.replace('/request/location');
+    router.replace(getHomePathForRole(getStoredUserRole()));
   };
 
   const handleVerifyCode = async () => {

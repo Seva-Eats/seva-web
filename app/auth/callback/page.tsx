@@ -7,6 +7,7 @@ import { AppShell } from '@/components/AppShell';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import { useUser } from '@/context';
 import { completeAuthFromUrl, getCurrentSession } from '@/lib/auth/complete-auth-from-url';
+import { getHomePathForRole, getStoredUserRole } from '@/lib/navigation/role-paths';
 import { setOnboardingCompleted } from '@/lib/storage';
 
 function providerFromSession(session: Awaited<ReturnType<typeof getCurrentSession>>) {
@@ -54,7 +55,7 @@ export default function AuthCallbackPage() {
 
         await setOnboardingCompleted(true);
         setStatus('done');
-        router.replace('/request/location');
+        router.replace(getHomePathForRole(getStoredUserRole()));
       } catch {
         setStatus('error');
       }
