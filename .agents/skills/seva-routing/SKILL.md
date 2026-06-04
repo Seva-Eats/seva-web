@@ -43,6 +43,4 @@ description: >-
 
 ## Full spec
 
-- Ops + APIs: `docs/ROUTING.md`
-- **Math / algorithms:** `docs/ROUTE_OPTIMIZATION.md`
-- Phases: `docs/ROADMAP.md`
+`docs/README.md` — index. Math uses GitHub `$...$` / `$$...$$` in `docs/ROUTE_OPTIMIZATION.md`.

@@ -7,8 +7,10 @@ This file guides AI agents building UI and flows in **seva-eats-web**. The web a
 | Doc | Use when |
 |-----|----------|
 | [context.md](./context.md) | What exists today, schema map, repo links |
+| [docs/README.md](./docs/README.md) | Docs index; GitHub math (`$...$`, `$$...$$`) |
 | [docs/ROADMAP.md](./docs/ROADMAP.md) | **What to build next** — phased tasks + exit criteria |
-| [docs/ROUTING.md](./docs/ROUTING.md) | Dispatch, VRP, `driver_routes`, matrix API, live tracking |
+| [docs/ROUTING.md](./docs/ROUTING.md) | Dispatch ops, APIs, live GPS |
+| [docs/ROUTE_OPTIMIZATION.md](./docs/ROUTE_OPTIMIZATION.md) | CVRPTW + v1 heuristic math |
 | `.agents/skills/seva-routing/SKILL.md` | Short routing rules for agents |
 
 Build **one phase at a time** per ROADMAP. Do not implement WhatsApp or full VRP before Phase 0–1 SQL wiring is done.

@@ -4,7 +4,7 @@
 
 **Live app:** [https://sevaeats.vercel.app](https://sevaeats.vercel.app)
 
-Seva Eats connects people who need langar meals with volunteers who pick up at gurdwara hubs and deliver with dignity. This is the web app (Next.js), paired with the Expo mobile app in `sewa-eats`.
+Seva Eats connects people who need langar meals with sevadars who pick up at gurdwara hubs and deliver with dignity. This is the web app (Next.js), paired with the Expo mobile app in `sewa-eats`.
 
 ## Local development
 

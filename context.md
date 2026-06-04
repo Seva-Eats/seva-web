@@ -1,6 +1,6 @@
 # Seva Eats Web — Project Context
 
-**Read this before building new features.** UI rules live in [AGENTS.md](./AGENTS.md). Phases and tasks live in [docs/ROADMAP.md](./docs/ROADMAP.md). Route ops + APIs: [docs/ROUTING.md](./docs/ROUTING.md). Optimization math: [docs/ROUTE_OPTIMIZATION.md](./docs/ROUTE_OPTIMIZATION.md).
+**Read this before building new features.** UI: [AGENTS.md](./AGENTS.md). Docs index: [docs/README.md](./docs/README.md).
 
 Expo/mobile PRD reference: [`../sewa-eats/context.md`](../sewa-eats/context.md) (older beta scope; web PRD v1 below is the north star).
 
@@ -85,9 +85,7 @@ Coordinator Admin       →  API optimize    →  driver_routes + route_stops
 Sevadar (active shift)  →  location pings  →  Realtime → map / ETA
 ```
 
-**Service night (plain language):** Coordinator confirms which sevadars are delivering tonight → system has Gurdwara (kitchen) + recipient addresses + driver positions → server builds routes so **everyone gets food** with **less total driving** → finalize pushes to `/seva` → GPS updates coordinator and recipient maps.
-
-**Do not** run VRP in the browser. Playbook + APIs: [docs/ROUTING.md](./docs/ROUTING.md#service-night-playbook). **What to build next:** [docs/ROADMAP.md](./docs/ROADMAP.md#next-steps-what-to-build-now).
+Dispatch: confirm sevadars → geocoded orders + kitchen → server optimizes routes → finalize → GPS. See [docs/ROUTING.md](./docs/ROUTING.md) and [docs/ROUTE_OPTIMIZATION.md](./docs/ROUTE_OPTIMIZATION.md).
 
 ---
 
