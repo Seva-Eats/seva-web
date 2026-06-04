@@ -131,32 +131,34 @@ function EmailAuthContent() {
           </h1>
           <p className="mt-1 text-sm text-[#6B7280]">Enter your email and password to continue.</p>
 
-          <div className="mt-6 space-y-3">
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-[#E8E3DA] bg-white px-4 py-3 text-[#1A1A1A] outline-none focus:border-[#F07B2A]"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-[#E8E3DA] bg-white px-4 py-3 text-[#1A1A1A] outline-none focus:border-[#F07B2A]"
-            />
-          </div>
+          <div className="mt-6 rounded-2xl border border-[#E8E3DA] bg-[#F7F4EF] p-4">
+            <div className="space-y-3">
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-xl border border-[#E8E3DA] bg-white px-4 py-3 text-[#1A1A1A] outline-none focus:border-[#F07B2A]"
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-xl border border-[#E8E3DA] bg-white px-4 py-3 text-[#1A1A1A] outline-none focus:border-[#F07B2A]"
+              />
+            </div>
 
-          <button
-            type="button"
-            onClick={handleEmailPasswordAuth}
-            disabled={isLoading}
-            className="mt-6 flex min-h-[56px] w-full items-center justify-center rounded-[28px] text-[17px] font-bold text-white disabled:opacity-60"
-            style={{ backgroundColor: ONBOARDING_COLORS.accent }}
-          >
-            {isLoading ? 'Please wait...' : mode === 'signup' ? 'Create Account' : 'Sign In'}
-          </button>
+            <button
+              type="button"
+              onClick={handleEmailPasswordAuth}
+              disabled={isLoading}
+              className="mt-4 flex min-h-[56px] w-full items-center justify-center rounded-[28px] text-[17px] font-bold text-white disabled:opacity-60"
+              style={{ backgroundColor: ONBOARDING_COLORS.accent }}
+            >
+              {isLoading ? 'Please wait...' : mode === 'signup' ? 'Create account' : 'Sign In'}
+            </button>
+          </div>
         </div>
       </div>
     </AppShell>

@@ -1,21 +1,18 @@
 'use client';
 
-import { Minus, Plus } from 'lucide-react';
+import { ArrowRight, Bike } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 
 import { AppShell } from '@/components/AppShell';
-import { RequestNav } from '@/components/RequestNav';
+import { MealGridCard } from '@/components/meals/MealGridCard';
+import { RequestFlowHeader } from '@/components/request/RequestFlowHeader';
 import { mealOptions, type MealOption } from '@/constants/meals';
-import { useThemeColors } from '@/hooks/use-theme-colors';
-
-type SelectedMeal = { meal: MealOption; quantity: number };
 
 function NewRequestContent() {
   const router = useRouter();
   const params = useSearchParams();
   const locationId = params.get('location') ?? '';
-  const colors = useThemeColors();
   const [selected, setSelected] = useState<Record<string, number>>({});
 
   const toggleMeal = (mealId: string) => {
@@ -38,162 +35,80 @@ function NewRequestContent() {
     });
   };
 
-  const selectedList: SelectedMeal[] = Object.entries(selected)
-    .map(([id, quantity]) => {
-      const meal = mealOptions.find((m) => m.id === id);
-      return meal ? { meal, quantity } : null;
-    })
-    .filter(Boolean) as SelectedMeal[];
-  const totalMeals = selectedList.reduce((sum, item) => sum + item.quantity, 0);
+  const totalMeals = Object.values(selected).reduce((sum, q) => sum + q, 0);
   const mainMeals = mealOptions.filter((meal) => meal.category === 'main');
   const desserts = mealOptions.filter((meal) => meal.category === 'dessert');
 
   const handleContinue = () => {
-    if (selectedList.length === 0) return;
-    const mealsParam = selectedList.map((s) => `${s.meal.id}:${s.quantity}`).join(',');
+    if (totalMeals === 0) return;
+    const mealsParam = Object.entries(selected)
+      .map(([id, quantity]) => `${id}:${quantity}`)
+      .join(',');
     router.push(`/request/details?location=${locationId}&meals=${encodeURIComponent(mealsParam)}`);
   };
 
+  const renderGrid = (meals: MealOption[]) => (
+    <div className="grid grid-cols-2 gap-3">
+      {meals.map((meal) => (
+        <MealGridCard
+          key={meal.id}
+          meal={meal}
+          quantity={selected[meal.id] ?? 0}
+          onAdd={() => toggleMeal(meal.id)}
+          onIncrement={() => adjustQty(meal.id, 1)}
+          onDecrement={() => adjustQty(meal.id, -1)}
+        />
+      ))}
+    </div>
+  );
+
   return (
     <AppShell>
-      <div className="min-h-screen" style={{ backgroundColor: colors.background }}>
-        <RequestNav />
-        <div className="px-4 pb-8 pt-4">
-          <h1 className="text-2xl font-extrabold" style={{ color: colors.text }}>
-            Select meals
-          </h1>
-          <p className="mt-1 text-sm" style={{ color: colors.mutedText }}>
-            Choose what you would like delivered
-          </p>
+      <div className="relative min-h-screen bg-[#FFF9F2] pb-24">
+        <RequestFlowHeader
+          title="Choose Your Meals"
+          subtitle="All meals are 100% free"
+          backHref="/request/location"
+        />
 
-          <p className="mt-3 text-xs font-semibold uppercase tracking-wide" style={{ color: colors.mutedText }}>
-            Main Courses
-          </p>
-          <div className="mt-2 space-y-3">
-            {mainMeals.map((meal) => {
-              const qty = selected[meal.id] ?? 0;
-              const isSelected = qty > 0;
-              return (
-                <div
-                  key={meal.id}
-                  className="rounded-2xl border p-4"
-                  style={{
-                    borderColor: isSelected ? colors.accent : colors.border,
-                    backgroundColor: isSelected
-                      ? colors.isDark
-                        ? 'rgba(249, 115, 22, 0.15)'
-                        : '#FFFBEB'
-                      : colors.surfaceElevated,
-                  }}
-                >
-                  <button type="button" onClick={() => toggleMeal(meal.id)} className="w-full text-left">
-                    <p className="font-bold" style={{ color: colors.text }}>
-                      {meal.name}
-                    </p>
-                    <p className="text-sm" style={{ color: colors.mutedText }}>
-                      {meal.description}
-                    </p>
-                    <p className="text-xs" style={{ color: colors.mutedText }}>
-                      {meal.servings}
-                    </p>
-                  </button>
-                  {isSelected && (
-                    <div className="mt-3 flex items-center justify-end gap-3">
-                      <button
-                        type="button"
-                        onClick={() => adjustQty(meal.id, -1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full border"
-                        style={{ borderColor: colors.border }}
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <span className="font-bold" style={{ color: colors.text }}>
-                        {qty}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => adjustQty(meal.id, 1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full"
-                        style={{ backgroundColor: colors.accent, color: '#fff' }}
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+        <div className="px-4 pt-4">
+          <div className="mb-5 flex gap-3 rounded-2xl border border-[#FED7AA] bg-[#FFF2E6] p-4">
+            <Bike size={24} className="shrink-0 text-[#F07B2A]" />
+            <div>
+              <p className="text-sm font-bold text-[#C2410C]">Langar is free for everyone</p>
+              <p className="mt-0.5 text-[13px] leading-[18px] text-[#EA580C]">
+                A volunteer will deliver your meal to a partner shelter or community drop-off
+              </p>
+            </div>
           </div>
 
-          <p className="mt-5 text-xs font-semibold uppercase tracking-wide" style={{ color: colors.mutedText }}>
-            Desserts
-          </p>
-          <div className="mt-2 space-y-3">
-            {desserts.map((meal) => {
-              const qty = selected[meal.id] ?? 0;
-              const isSelected = qty > 0;
-              return (
-                <div
-                  key={meal.id}
-                  className="rounded-2xl border p-4"
-                  style={{
-                    borderColor: isSelected ? colors.accent : colors.border,
-                    backgroundColor: isSelected
-                      ? colors.isDark
-                        ? 'rgba(249, 115, 22, 0.15)'
-                        : '#FFFBEB'
-                      : colors.surfaceElevated,
-                  }}
-                >
-                  <button type="button" onClick={() => toggleMeal(meal.id)} className="w-full text-left">
-                    <p className="font-bold" style={{ color: colors.text }}>
-                      {meal.name}
-                    </p>
-                    <p className="text-sm" style={{ color: colors.mutedText }}>
-                      {meal.description}
-                    </p>
-                    <p className="text-xs" style={{ color: colors.mutedText }}>
-                      {meal.servings}
-                    </p>
-                  </button>
-                  {isSelected && (
-                    <div className="mt-3 flex items-center justify-end gap-3">
-                      <button
-                        type="button"
-                        onClick={() => adjustQty(meal.id, -1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full border"
-                        style={{ borderColor: colors.border }}
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <span className="font-bold" style={{ color: colors.text }}>
-                        {qty}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => adjustQty(meal.id, 1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full"
-                        style={{ backgroundColor: colors.accent, color: '#fff' }}
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <p className="mb-3 text-base font-bold text-[#1A1A1A]">Main Courses</p>
+          {renderGrid(mainMeals)}
 
-          <button
-            type="button"
-            onClick={handleContinue}
-            disabled={selectedList.length === 0}
-            className="mt-6 w-full rounded-[28px] py-3.5 text-base font-extrabold text-white disabled:opacity-50"
-            style={{ backgroundColor: colors.accent }}
-          >
-            {totalMeals > 0 ? `Continue (${totalMeals} selected)` : 'Continue'}
-          </button>
+          <p className="mb-3 mt-6 text-base font-bold text-[#1A1A1A]">Desserts</p>
+          {renderGrid(desserts)}
         </div>
+
+        {totalMeals > 0 && (
+          <div className="fixed bottom-0 left-1/2 flex w-full max-w-[430px] -translate-x-1/2 items-center justify-between border-t border-[#E8E3DA] bg-white px-4 py-4 pb-8">
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F07B2A] text-sm font-bold text-white">
+                {totalMeals}
+              </span>
+              <span className="text-sm text-[#6B7280]">
+                meal{totalMeals === 1 ? '' : 's'} selected
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleContinue}
+              className="flex items-center gap-2 rounded-full bg-[#F07B2A] px-6 py-3 text-base font-bold text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)] active:scale-[0.99]"
+            >
+              Continue
+              <ArrowRight size={18} color="#fff" />
+            </button>
+          </div>
+        )}
       </div>
     </AppShell>
   );
@@ -201,7 +116,13 @@ function NewRequestContent() {
 
 export default function NewRequestPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FFF8F0]" />}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[#FFF9F2]">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#F07B2A] border-t-transparent" />
+        </div>
+      }
+    >
       <NewRequestContent />
     </Suspense>
   );

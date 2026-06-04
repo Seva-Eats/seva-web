@@ -1,45 +1,25 @@
 'use client';
 
+import { Car, Home, MapPin, MessageCircle, Store } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 
 import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
-import { REQUEST_STATUS_LABELS, type MealRequestStatus, useRequests } from '@/context';
-import { useThemeColors } from '@/hooks/use-theme-colors';
-
-const STATUS_STEPS: { status: MealRequestStatus; label: string }[] = [
-  { status: 'pending', label: 'Finding driver' },
-  { status: 'matched', label: 'Driver matched' },
-  { status: 'picked_up', label: 'Meal picked up' },
-  { status: 'on_the_way', label: 'On the way' },
-  { status: 'delivered', label: 'Delivered' },
-];
-
-const statusTone: Record<MealRequestStatus, string> = {
-  pending: '#F59E0B',
-  matched: '#2563EB',
-  picked_up: '#7C3AED',
-  on_the_way: '#EA580C',
-  delivered: '#059669',
-  cancelled: '#DC2626',
-};
-
-function getStepIndex(status: MealRequestStatus) {
-  const stepIndex = STATUS_STEPS.findIndex((step) => step.status === status);
-  if (stepIndex >= 0) return stepIndex;
-  return 0;
-}
+import { RequestFlowHeader } from '@/components/request/RequestFlowHeader';
+import { DeliveryProgressStepper } from '@/components/tracking/DeliveryProgressStepper';
+import { RequestDetailsCard } from '@/components/tracking/RequestDetailsCard';
+import { REQUEST_STATUS_LABELS, useRequests } from '@/context';
 
 export default function RequestTrackingPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const colors = useThemeColors();
   const { getRequest, cancelRequest } = useRequests();
 
   const request = typeof id === 'string' ? getRequest(id) : undefined;
-  const isComplete = request ? request.status === 'delivered' || request.status === 'cancelled' : false;
-  const stepIndex = request ? getStepIndex(request.status) : 0;
+  const isDelivered = request?.status === 'delivered';
+  const isCancelled = request?.status === 'cancelled';
+  const isComplete = isDelivered || isCancelled;
+
   const eta = request?.estimatedDelivery
     ? request.estimatedDelivery.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
     : null;
@@ -52,181 +32,148 @@ export default function RequestTrackingPage() {
     }
   };
 
-  return (
-    <AppShell>
-      <div className="min-h-screen" style={{ backgroundColor: colors.background }}>
-        <PageHeader title="Request Tracking" backHref="/requests/active" />
-        <div className="p-4">
-          <div
-            className="rounded-2xl border p-5"
-            style={{ backgroundColor: colors.surface, borderColor: colors.border }}
-          >
-            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: colors.mutedText }}>
-              Request ID
+  if (isDelivered) {
+    return (
+      <AppShell>
+        <div className="min-h-screen bg-[#FFF9F2] pb-28">
+          <RequestFlowHeader
+            title="Delivered!"
+            useCloseIcon
+            closeHref="/request/location"
+          />
+
+          <div className="flex flex-col items-center px-4 pt-6 text-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#10B981]">
+              <span className="text-4xl font-bold text-white">✓</span>
+            </div>
+            <h2 className="mt-4 text-2xl font-bold text-[#059669]">Meal Delivered!</h2>
+            <p className="mt-2 max-w-[300px] text-sm text-[#6B7280]">
+              Thank you for using Seva Eats. We hope you enjoy your meal!
             </p>
-            <p className="text-lg font-bold" style={{ color: colors.text }}>
-              {request?.id ?? id ?? 'Unknown'}
-            </p>
-
-            <p className="mt-4 text-xs font-semibold uppercase tracking-wide" style={{ color: colors.mutedText }}>
-              Status
-            </p>
-            <p className="text-lg font-bold" style={{ color: request ? statusTone[request.status] : colors.accent }}>
-              {request ? REQUEST_STATUS_LABELS[request.status] : 'Pending'}
-            </p>
-
-            {!isComplete && eta && (
-              <p className="mt-2 text-sm" style={{ color: colors.mutedText }}>
-                Estimated arrival: <span style={{ color: colors.text, fontWeight: 700 }}>{eta}</span>
-              </p>
-            )}
-
-            {request?.volunteerName && (
-              <>
-                <p className="mt-4 text-xs font-semibold uppercase tracking-wide" style={{ color: colors.mutedText }}>
-                  Volunteer
-                </p>
-                <p style={{ color: colors.text }}>{request.volunteerName}</p>
-              </>
-            )}
-
-            {request?.pickupLocationName && (
-              <>
-                <p className="mt-4 text-xs font-semibold uppercase tracking-wide" style={{ color: colors.mutedText }}>
-                  Pickup Hub
-                </p>
-                <p style={{ color: colors.text }}>{request.pickupLocationName}</p>
-              </>
-            )}
-
-            {request?.deliveryAddress && (
-              <>
-                <p className="mt-4 text-xs font-semibold uppercase tracking-wide" style={{ color: colors.mutedText }}>
-                  Delivery Address
-                </p>
-                <p style={{ color: colors.text }}>{request.deliveryAddress.address}</p>
-              </>
-            )}
           </div>
 
+          <div className="mt-6 space-y-4 px-4">
+            {request && <DeliveryProgressStepper status={request.status} />}
+            <RequestDetailsCard
+              name={request.recipientName}
+              phone={request.recipientPhone}
+              deliveryAddress={request.deliveryAddress.address}
+              servingSize={request.servingSize}
+            />
+          </div>
+
+          <div className="fixed bottom-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 px-4 pb-8">
+            <Link
+              href="/request/location"
+              className="flex w-full items-center justify-center rounded-[28px] bg-[#F07B2A] py-4 text-base font-bold text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)]"
+            >
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
+
+  return (
+    <AppShell>
+      <div className="min-h-screen bg-[#FFF9F2] pb-28">
+        <RequestFlowHeader
+          title="Tracking"
+          useCloseIcon
+          closeHref="/request/location"
+        />
+
+        <div className="px-4 pt-4">
+          <h2 className="text-2xl font-bold text-[#1A1A1A]">
+            {request ? REQUEST_STATUS_LABELS[request.status] : 'Finding a Driver'}
+          </h2>
+          {!isComplete && (
+            <p className="mt-1 flex items-center gap-1.5 text-sm text-[#6B7280]">
+              <span className="text-[#F07B2A]">⏱</span>
+              Estimated arrival:{' '}
+              <span className="font-semibold text-[#1A1A1A]">
+                {eta ?? 'Calculating...'}
+              </span>
+            </p>
+          )}
+
           {request && (
-            <div
-              className="mt-4 rounded-2xl border p-4"
-              style={{ backgroundColor: colors.surface, borderColor: colors.border }}
-            >
-              <p className="text-sm font-bold" style={{ color: colors.text }}>
-                Delivery Progress
-              </p>
+            <div className="mt-4 space-y-4">
+              <DeliveryProgressStepper status={request.status} />
 
-              <div className="mt-3 space-y-3">
-                {STATUS_STEPS.map((step, index) => {
-                  const isDone = index < stepIndex || request.status === 'delivered';
-                  const isCurrent = index === stepIndex && request.status !== 'delivered';
-                  return (
-                    <div key={step.status} className="flex items-center gap-3">
-                      <div
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{
-                          backgroundColor: isDone || isCurrent ? statusTone[step.status] : colors.border,
-                        }}
-                      />
-                      <p
-                        className="text-sm"
-                        style={{
-                          color: isDone || isCurrent ? colors.text : colors.mutedText,
-                          fontWeight: isCurrent ? 700 : 500,
-                        }}
-                      >
-                        {step.label}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {request && request.selectedMeals.length > 0 && (
-            <div
-              className="mt-4 rounded-2xl border p-4"
-              style={{ backgroundColor: colors.surface, borderColor: colors.border }}
-            >
-              <p className="text-sm font-bold" style={{ color: colors.text }}>
-                Request Details
-              </p>
-              <div className="mt-2 space-y-1 text-sm" style={{ color: colors.mutedText }}>
-                {request.selectedMeals.map((meal) => (
-                  <p key={meal.id}>
-                    {meal.quantity}x {meal.name}
-                  </p>
-                ))}
-              </div>
-              <p className="mt-3 text-sm" style={{ color: colors.mutedText }}>
-                Serving size: <span style={{ color: colors.text, fontWeight: 600 }}>{request.servingSize}</span>
-              </p>
-              <p className="text-sm" style={{ color: colors.mutedText }}>
-                Delivery window: <span style={{ color: colors.text, fontWeight: 600 }}>{request.deliveryWindow}</span>
-              </p>
-              <p className="text-sm" style={{ color: colors.mutedText }}>
-                Preference:{' '}
-                <span style={{ color: colors.text, fontWeight: 600 }}>
-                  {request.deliveryPreference === 'leave_at_door' ? 'Leave at door' : 'Hand to me'}
-                </span>
-              </p>
-              {typeof request.donationAmount === 'number' && request.donationAmount > 0 && (
-                <p className="text-sm" style={{ color: colors.mutedText }}>
-                  Donation: <span style={{ color: colors.text, fontWeight: 600 }}>${request.donationAmount}</span>
-                </p>
-              )}
-            </div>
-          )}
-
-          {request && request.statusHistory.length > 0 && (
-            <div
-              className="mt-4 rounded-2xl border p-4"
-              style={{ backgroundColor: colors.surface, borderColor: colors.border }}
-            >
-              <p className="text-sm font-bold" style={{ color: colors.text }}>
-                Status Timeline
-              </p>
-              <div className="mt-2 space-y-2">
-                {[...request.statusHistory].reverse().map((entry, index) => (
-                  <div key={`${entry.status}-${index}`} className="flex items-center justify-between text-sm">
-                    <p style={{ color: colors.text }}>{REQUEST_STATUS_LABELS[entry.status]}</p>
-                    <p style={{ color: colors.mutedText }}>
-                      {entry.timestamp.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                    </p>
+              <div className="overflow-hidden rounded-2xl border border-[#E8E3DA] bg-[#E5E7EB]">
+                <div className="relative h-44 bg-gradient-to-br from-[#D1FAE5] via-[#F3F4F6] to-[#DBEAFE]">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Store size={36} className="text-[#F07B2A]" />
                   </div>
-                ))}
+                </div>
+                <div className="flex items-center gap-2 border-t border-[#E8E3DA] bg-white px-4 py-3 text-xs">
+                  <MapPin size={14} className="text-[#F07B2A]" />
+                  <span className="font-semibold text-[#1A1A1A]">
+                    {request.pickupLocationName ?? 'Brampton Hub'}
+                  </span>
+                  <span className="text-[#D1D5DB]">— —</span>
+                  <Car size={12} className="text-[#9CA3AF]" />
+                  <span className="text-[#D1D5DB]">— —</span>
+                  <Home size={14} className="text-[#10B981]" />
+                  <span className="truncate font-semibold text-[#1A1A1A]">
+                    {request.deliveryAddress.address}
+                  </span>
+                </div>
               </div>
+
+              <div className="flex items-center justify-between rounded-2xl border border-[#E8E3DA] bg-white p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#EFF6FF] text-lg">
+                    🙂
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#6B7280]">Need help?</p>
+                    <p className="font-bold text-[#1A1A1A]">Contact support</p>
+                  </div>
+                </div>
+                <Link
+                  href="/support"
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F07B2A] text-white"
+                  aria-label="Contact support"
+                >
+                  <MessageCircle size={22} />
+                </Link>
+              </div>
+
+              <RequestDetailsCard
+                name={request.recipientName}
+                phone={request.recipientPhone}
+                deliveryAddress={request.deliveryAddress.address}
+                servingSize={request.servingSize}
+              />
             </div>
           )}
 
           {!request && (
-            <div
-              className="mt-4 rounded-2xl border p-5"
-              style={{ borderColor: colors.border, backgroundColor: colors.surfaceElevated }}
-            >
-              <p className="text-sm" style={{ color: colors.mutedText }}>
-                We could not find that request. Open your active requests to continue tracking.
+            <div className="mt-4 rounded-2xl border border-[#E8E3DA] bg-white p-5">
+              <p className="text-sm text-[#6B7280]">
+                We could not find that request.
               </p>
-              <Link href="/requests/active" className="mt-3 inline-block text-sm font-semibold" style={{ color: colors.accent }}>
-                View Active Requests
+              <Link href="/requests/active" className="mt-2 inline-block text-sm font-semibold text-[#F07B2A]">
+                View active requests
               </Link>
             </div>
           )}
+        </div>
 
-          {request && !['delivered', 'cancelled'].includes(request.status) && (
+        {request && !isComplete && (
+          <div className="fixed bottom-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 px-4 pb-8">
             <button
               type="button"
               onClick={handleCancel}
-              className="mt-4 w-full rounded-xl border py-3 font-bold text-red-600"
-              style={{ borderColor: colors.border }}
+              className="w-full rounded-[28px] border-2 border-[#EF4444] bg-white py-3.5 text-base font-bold text-[#EF4444] active:scale-[0.99]"
             >
               Cancel Request
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );

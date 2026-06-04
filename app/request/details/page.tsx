@@ -1,17 +1,18 @@
 'use client';
 
+import { DoorOpen, MapPin, UtensilsCrossed, UserRound } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useMemo, useState } from 'react';
 
 import { AppShell } from '@/components/AppShell';
-import { RequestNav } from '@/components/RequestNav';
+import { MealIcon } from '@/components/meals/MealIcon';
+import { RequestFlowHeader } from '@/components/request/RequestFlowHeader';
 import { getMealById } from '@/constants/meals';
 import { pickupLocations } from '@/constants/mock-data';
 import { useLocation, useRequests, useUser } from '@/context';
-import { useThemeColors } from '@/hooks/use-theme-colors';
 
 const SERVING_SIZES = [1, 2, 3];
-const DELIVERY_WINDOWS = ['12-2 PM', '2-4 PM', '6-8 PM'];
+const DELIVERY_WINDOWS = ['12–2 PM', '2–4 PM', '6–8 PM'];
 const MAX_NOTE_LENGTH = 200;
 
 const formatPhoneNumber = (value: string): string => {
@@ -28,16 +29,18 @@ function DetailsContent() {
   const { userLocation } = useLocation();
   const { user } = useUser();
   const { submitRequest, activeRequest } = useRequests();
-  const colors = useThemeColors();
 
   const selectedMeals = useMemo(() => {
     const meals = params.get('meals');
     if (!meals) return [];
-    return meals.split(',').map((item) => {
-      const [id, qty] = item.split(':');
-      const meal = getMealById(id);
-      return meal ? { meal, quantity: parseInt(qty, 10) } : null;
-    }).filter(Boolean) as { meal: NonNullable<ReturnType<typeof getMealById>>; quantity: number }[];
+    return meals
+      .split(',')
+      .map((item) => {
+        const [id, qty] = item.split(':');
+        const meal = getMealById(id);
+        return meal ? { meal, quantity: parseInt(qty, 10) } : null;
+      })
+      .filter(Boolean) as { meal: NonNullable<ReturnType<typeof getMealById>>; quantity: number }[];
   }, [params]);
 
   const selectedLocation = useMemo(() => {
@@ -48,15 +51,20 @@ function DetailsContent() {
 
   const [name, setName] = useState(user?.name ?? '');
   const [phone, setPhone] = useState(user?.phone ?? '');
-  const [address, setAddress] = useState(
-    user?.homeAddress?.address ?? selectedLocation?.location.address ?? ''
-  );
-  const [servingSize, setServingSize] = useState(user?.servingSize ?? 2);
+  const [servingSize, setServingSize] = useState(user?.servingSize ?? 1);
   const [thankYouNote, setThankYouNote] = useState('');
-  const [deliveryPreference, setDeliveryPreference] = useState<'leave_at_door' | 'hand_to_me'>('leave_at_door');
+  const [deliveryPreference, setDeliveryPreference] = useState<'leave_at_door' | 'hand_to_me'>(
+    'leave_at_door'
+  );
   const [deliveryWindow, setDeliveryWindow] = useState(DELIVERY_WINDOWS[0]);
-  const [donationAmount, setDonationAmount] = useState('');
+  const [donationAmount, setDonationAmount] = useState('5');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const deliveryAddress =
+    user?.homeAddress?.address ??
+    selectedLocation?.location.address ??
+    userLocation?.address ??
+    '123 Community Way, Brampton, ON';
 
   const lat =
     user?.homeAddress?.latitude ??
@@ -71,20 +79,16 @@ function DetailsContent() {
 
   const handleSubmit = () => {
     if (!name.trim()) {
-      alert('Name Required: Please enter your name.');
+      alert('Please enter your name.');
       return;
     }
     if (!phone.trim()) {
-      alert('Phone Required: Please enter your phone number.');
+      alert('Please enter your phone number.');
       return;
     }
     const phoneDigitsOnly = phone.replace(/[^\d]/g, '');
     if (phoneDigitsOnly.length !== 10) {
-      alert('Invalid Phone: Please enter a valid 10-digit phone number.');
-      return;
-    }
-    if (!address.trim()) {
-      alert('Address Required: Please enter your delivery address.');
+      alert('Please enter a valid 10-digit phone number.');
       return;
     }
     if (activeRequest) {
@@ -94,15 +98,15 @@ function DetailsContent() {
 
     setIsSubmitting(true);
     const mealSummary = selectedMeals.map((s) => `${s.quantity}x ${s.meal.name}`).join(', ');
-    const donationValue = donationAmount ? Number(donationAmount) : undefined;
+    const donationValue = donationAmount ? Number(donationAmount.replace(/[^0-9]/g, '')) : undefined;
     const note = thankYouNote.trim()
-      ? `${thankYouNote.trim()} | Meals: ${mealSummary} | Delivery: ${deliveryPreference === 'leave_at_door' ? 'Leave at door' : 'Hand to me'} | Window: ${deliveryWindow}`
-      : `Meals: ${mealSummary} | Delivery: ${deliveryPreference === 'leave_at_door' ? 'Leave at door' : 'Hand to me'} | Window: ${deliveryWindow}`;
+      ? `${thankYouNote.trim()} | Meals: ${mealSummary}`
+      : `Meals: ${mealSummary}`;
 
     const newRequest = submitRequest({
       recipientName: name.trim(),
       recipientPhone: phone.trim(),
-      deliveryAddress: { address: address.trim(), latitude: lat, longitude: lon },
+      deliveryAddress: { address: deliveryAddress, latitude: lat, longitude: lon },
       servingSize,
       dietaryRestrictions: user?.dietaryRestrictions ?? [],
       driverNote: note,
@@ -124,166 +128,214 @@ function DetailsContent() {
 
   return (
     <AppShell>
-      <div className="min-h-screen" style={{ backgroundColor: colors.background }}>
-        <RequestNav />
-        <div className="px-4 pb-8 pt-4">
-          <h1 className="text-2xl font-extrabold" style={{ color: colors.text }}>
-            Delivery details
-          </h1>
+      <div className="min-h-screen bg-[#FFF9F2] pb-28">
+        <RequestFlowHeader
+          title="Delivery Details"
+          backHref={
+            params.get('location')
+              ? `/request/new?location=${params.get('location')}`
+              : '/request/location'
+          }
+        />
 
-          <div className="mt-4 space-y-3">
-            <Field label="Name" value={name} onChange={setName} colors={colors} />
-            <Field
-              label="Phone"
-              value={phone}
-              onChange={(v) => setPhone(formatPhoneNumber(v))}
-              colors={colors}
-            />
-            <Field label="Delivery address" value={address} onChange={setAddress} colors={colors} />
-            {userLocation && (
-              <button
-                type="button"
-                className="rounded-xl border px-3 py-2 text-sm font-semibold"
-                style={{ borderColor: colors.border, color: colors.text, backgroundColor: colors.surfaceElevated }}
-                onClick={() => setAddress(userLocation.address)}
+        <div className="space-y-5 px-4 pt-4">
+          <div className="flex justify-center gap-2">
+            {[1, 2, 3].map((step) => (
+              <span
+                key={step}
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
+                  step === 1
+                    ? 'bg-[#F07B2A] text-white'
+                    : 'border border-[#E5E7EB] bg-white text-[#1A1A1A]'
+                }`}
               >
-                Use my current location
-              </button>
-            )}
-
-            <div>
-              <p className="mb-2 text-sm font-semibold" style={{ color: colors.text }}>
-                Serving size
-              </p>
-              <div className="flex gap-2">
-                {SERVING_SIZES.map((size) => (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => setServingSize(size)}
-                    className="flex-1 rounded-xl border py-2 font-bold"
-                    style={{
-                      borderColor: servingSize === size ? colors.accent : colors.border,
-                      backgroundColor: servingSize === size ? `${colors.accent}22` : 'transparent',
-                      color: colors.text,
-                    }}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-2 text-sm font-semibold" style={{ color: colors.text }}>
-                Delivery window
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                {DELIVERY_WINDOWS.map((window) => (
-                  <button
-                    key={window}
-                    type="button"
-                    onClick={() => setDeliveryWindow(window)}
-                    className="rounded-xl border py-2 text-xs font-bold"
-                    style={{
-                      borderColor: deliveryWindow === window ? colors.accent : colors.border,
-                      backgroundColor: deliveryWindow === window ? `${colors.accent}22` : 'transparent',
-                      color: colors.text,
-                    }}
-                  >
-                    {window}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-2 text-sm font-semibold" style={{ color: colors.text }}>
-                Delivery preference
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setDeliveryPreference('leave_at_door')}
-                  className="rounded-xl border py-2 text-sm font-bold"
-                  style={{
-                    borderColor: deliveryPreference === 'leave_at_door' ? colors.accent : colors.border,
-                    backgroundColor: deliveryPreference === 'leave_at_door' ? `${colors.accent}22` : 'transparent',
-                    color: colors.text,
-                  }}
-                >
-                  Leave at door
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDeliveryPreference('hand_to_me')}
-                  className="rounded-xl border py-2 text-sm font-bold"
-                  style={{
-                    borderColor: deliveryPreference === 'hand_to_me' ? colors.accent : colors.border,
-                    backgroundColor: deliveryPreference === 'hand_to_me' ? `${colors.accent}22` : 'transparent',
-                    color: colors.text,
-                  }}
-                >
-                  Hand to me
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-2 text-sm font-semibold" style={{ color: colors.text }}>
-                Driver note (optional)
-              </p>
-              <textarea
-                value={thankYouNote}
-                onChange={(e) => setThankYouNote(e.target.value.slice(0, MAX_NOTE_LENGTH))}
-                rows={3}
-                className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                style={{ borderColor: colors.border, color: colors.text, backgroundColor: colors.surfaceElevated }}
-              />
-              <p className="text-xs" style={{ color: colors.mutedText }}>
-                {thankYouNote.length}/{MAX_NOTE_LENGTH}
-              </p>
-            </div>
-
-            <div>
-              <p className="mb-2 text-sm font-semibold" style={{ color: colors.text }}>
-                Donation (optional)
-              </p>
-              <input
-                value={donationAmount}
-                onChange={(e) => setDonationAmount(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))}
-                placeholder="5"
-                inputMode="numeric"
-                className="w-full rounded-xl border px-3 py-2.5 outline-none"
-                style={{ borderColor: colors.border, color: colors.text, backgroundColor: colors.surfaceElevated }}
-              />
-              <p className="text-xs" style={{ color: colors.mutedText }}>
-                100% optional. Never required.
-              </p>
-            </div>
-
-            {selectedMeals.length > 0 && (
-              <div className="rounded-xl border p-3" style={{ borderColor: colors.border }}>
-                <p className="text-sm font-semibold" style={{ color: colors.text }}>
-                  Selected meals
-                </p>
-                {selectedMeals.map((s) => (
-                  <p key={s.meal.id} className="text-sm" style={{ color: colors.mutedText }}>
-                    {s.quantity}x {s.meal.name}
-                  </p>
-                ))}
-              </div>
-            )}
+                {step}
+              </span>
+            ))}
           </div>
 
+          {selectedMeals.length > 0 && (
+            <section>
+              <p className="mb-2 text-base font-bold text-[#1A1A1A]">Your Order</p>
+              <div className="space-y-2">
+                {selectedMeals.map(({ meal, quantity }) => (
+                  <div key={meal.id} className="flex items-center gap-3">
+                    <div
+                      className="flex h-10 w-10 items-center justify-center rounded-full"
+                      style={{ backgroundColor: meal.backgroundColor }}
+                    >
+                      <MealIcon icon={meal.icon} color={meal.iconColor} size={20} />
+                    </div>
+                    <span className="flex-1 text-sm font-semibold text-[#1A1A1A]">{meal.name}</span>
+                    <span className="text-sm font-bold text-[#F07B2A]">x{quantity}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section>
+            <label className="mb-1.5 block text-base font-bold text-[#1A1A1A]">Your Name</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full rounded-xl border border-[#E8E3DA] bg-white px-4 py-3 text-[#1A1A1A] outline-none focus:border-[#F07B2A]"
+            />
+          </section>
+
+          <section>
+            <label className="mb-1.5 block text-base font-bold text-[#1A1A1A]">Phone Number</label>
+            <input
+              value={phone}
+              onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
+              placeholder="(XXX) XXX-XXXX"
+              className="w-full rounded-xl border border-[#E8E3DA] bg-white px-4 py-3 text-[#1A1A1A] outline-none focus:border-[#F07B2A]"
+            />
+            <p className="mt-1 text-xs text-[#6B7280]">
+              So the driver can contact if there are any issues
+            </p>
+          </section>
+
+          <section>
+            <p className="mb-2 text-base font-bold text-[#1A1A1A]">Delivery location</p>
+            <div className="flex gap-3 rounded-xl border border-[#E8E3DA] bg-[#FDF8F3] p-4">
+              <MapPin size={22} className="shrink-0 text-[#F07B2A]" />
+              <div>
+                <p className="font-bold text-[#1A1A1A]">
+                  {selectedLocation?.name ?? 'Brampton Distribution Hub'}
+                </p>
+                <p className="text-sm text-[#6B7280]">{deliveryAddress}</p>
+                <p className="mt-0.5 text-sm font-semibold text-[#F07B2A]">
+                  {selectedLocation?.nextPickupWindow ?? 'Friday, 6:00 PM'}
+                </p>
+              </div>
+            </div>
+            <p className="mt-1 text-xs text-[#6B7280]">
+              Meals are prepared at this hub for partner drop-offs.
+            </p>
+          </section>
+
+          <section>
+            <p className="text-base font-bold text-[#1A1A1A]">Serving Size</p>
+            <p className="mb-2 text-xs text-[#6B7280]">How many servings should we prepare?</p>
+            <div className="flex gap-3">
+              {SERVING_SIZES.map((size) => (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => setServingSize(size)}
+                  className={`flex h-12 w-12 items-center justify-center rounded-full text-base font-bold ${
+                    servingSize === size
+                      ? 'bg-[#F07B2A] text-white'
+                      : 'border border-[#E8E3DA] bg-white text-[#1A1A1A]'
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <p className="mb-2 text-base font-bold text-[#1A1A1A]">Delivery window</p>
+            <div className="grid grid-cols-3 gap-2">
+              {DELIVERY_WINDOWS.map((window) => (
+                <button
+                  key={window}
+                  type="button"
+                  onClick={() => setDeliveryWindow(window)}
+                  className={`rounded-xl py-2.5 text-xs font-bold ${
+                    deliveryWindow === window
+                      ? 'bg-[#F07B2A] text-white'
+                      : 'border border-[#E8E3DA] bg-white text-[#1A1A1A]'
+                  }`}
+                >
+                  {window}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <p className="mb-2 text-base font-bold text-[#1A1A1A]">Delivery preference</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setDeliveryPreference('leave_at_door')}
+                className={`flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold ${
+                  deliveryPreference === 'leave_at_door'
+                    ? 'bg-[#F07B2A] text-white'
+                    : 'border border-[#E8E3DA] bg-white text-[#1A1A1A]'
+                }`}
+              >
+                <DoorOpen size={18} />
+                Leave at door
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeliveryPreference('hand_to_me')}
+                className={`flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold ${
+                  deliveryPreference === 'hand_to_me'
+                    ? 'bg-[#F07B2A] text-white'
+                    : 'border border-[#E8E3DA] bg-white text-[#1A1A1A]'
+                }`}
+              >
+                <UserRound size={18} />
+                Hand to me
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-[#6B7280]">
+              We can&apos;t promise restaurant-heat, but every meal is made with love.
+            </p>
+          </section>
+
+          <section>
+            <p className="text-base font-bold text-[#1A1A1A]">
+              Give a message to your driver <span aria-hidden>❤️</span>
+            </p>
+            <p className="mb-2 text-xs text-[#6B7280]">Optional message that stays private</p>
+            <textarea
+              value={thankYouNote}
+              onChange={(e) => setThankYouNote(e.target.value.slice(0, MAX_NOTE_LENGTH))}
+              placeholder="Write a short thank-you"
+              rows={4}
+              className="w-full rounded-xl border border-[#E8E3DA] bg-white px-4 py-3 text-sm text-[#1A1A1A] outline-none focus:border-[#F07B2A]"
+            />
+            <div className="mt-1 flex justify-between text-xs text-[#6B7280]">
+              <span>Be respectful. Notes are visible to drivers.</span>
+              <span>
+                {thankYouNote.length}/{MAX_NOTE_LENGTH}
+              </span>
+            </div>
+          </section>
+
+          <section>
+            <p className="text-base font-bold text-[#1A1A1A]">Donate (optional)</p>
+            <p className="mb-2 text-xs text-[#6B7280]">
+              Help support packaging and delivery costs
+            </p>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6B7280]">$</span>
+              <input
+                value={donationAmount}
+                onChange={(e) =>
+                  setDonationAmount(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))
+                }
+                className="w-full rounded-xl border border-[#E8E3DA] bg-white py-3 pl-8 pr-4 text-[#1A1A1A] outline-none focus:border-[#F07B2A]"
+              />
+            </div>
+          </section>
+        </div>
+
+        <div className="fixed bottom-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 px-4 pb-8 pt-2">
           <button
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="mt-6 w-full rounded-[28px] py-3.5 text-base font-extrabold text-white disabled:opacity-50"
-            style={{ backgroundColor: colors.accent }}
+            className="flex w-full items-center justify-center gap-2 rounded-[28px] bg-[#F07B2A] py-4 text-base font-bold text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)] disabled:opacity-60 active:scale-[0.99]"
           >
-            {isSubmitting ? 'Submitting...' : 'Submit Request'}
+            <UtensilsCrossed size={20} />
+            {isSubmitting ? 'Submitting...' : 'Request Drop-off'}
           </button>
         </div>
       </div>
@@ -291,35 +343,15 @@ function DetailsContent() {
   );
 }
 
-function Field({
-  label,
-  value,
-  onChange,
-  colors,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  colors: ReturnType<typeof useThemeColors>;
-}) {
-  return (
-    <div>
-      <p className="mb-1 text-sm font-semibold" style={{ color: colors.text }}>
-        {label}
-      </p>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-xl border px-3 py-2.5 outline-none"
-        style={{ borderColor: colors.border, color: colors.text, backgroundColor: colors.surfaceElevated }}
-      />
-    </div>
-  );
-}
-
 export default function RequestDetailsPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FFF8F0]" />}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[#FFF9F2]">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#F07B2A] border-t-transparent" />
+        </div>
+      }
+    >
       <DetailsContent />
     </Suspense>
   );
