@@ -1,3 +1,7 @@
+import { ONBOARDING_COOKIE_KEY } from '@/constants/storage';
+
+export { ONBOARDING_COOKIE_KEY };
+
 export async function getItem(key: string): Promise<string | null> {
   if (typeof window === 'undefined') return null;
   try {
@@ -43,4 +47,3 @@ export async function setOnboardingCompleted(completed: boolean) {
   }
   syncOnboardingCookie(completed);
 }
-import { ONBOARDING_COOKIE_KEY } from '@/constants/storage';
