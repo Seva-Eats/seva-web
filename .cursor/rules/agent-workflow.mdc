@@ -1,0 +1,10 @@
+---
+description: Default git and build workflow — no automatic build or push
+alwaysApply: true
+---
+
+# Agent workflow
+
+- Do **not** run `npm run build` after every task. Only when the user asks, when fixing CI/build errors, or after risky changes (config, types, middleware, auth).
+- Do **not** `git push`, create commits, or open PRs unless the user explicitly requests it.
+- For routine edits, use targeted lint/type feedback on changed files instead of a full production build.
