@@ -29,7 +29,9 @@ pnpm-debug.log*
 android/
 ios/
 .expo/
-.agents/
+.agents/*
+!.agents/skills/
+!.agents/skills/**
 assets/
 expo-env.d.ts
 
