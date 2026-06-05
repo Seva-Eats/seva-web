@@ -137,8 +137,8 @@ export default function SignInPage() {
               onClick={() => router.push('/onboarding/email?mode=signup')}
               disabled={isGoogleLoading}
               className={cn(
-                TypeClass.body,
-                'flex min-h-[46px] w-full items-center justify-center rounded-[28px] border bg-transparent font-bold disabled:opacity-60 active:scale-[0.99]'
+                TypeClass.authBtn,
+                'flex min-h-[46px] w-full items-center justify-center rounded-[28px] border bg-transparent disabled:opacity-60 active:scale-[0.99]'
               )}
               style={{ borderColor: ORANGE, color: ORANGE }}
             >
@@ -152,9 +152,11 @@ export default function SignInPage() {
             <button
               type="button"
               onClick={handleGuest}
-              className="mt-3 w-full text-center text-xs font-semibold text-[#6B7280] underline"
+              className="btn-plain group mt-3 mx-auto block text-center text-xs font-extrabold text-[#6B7280] focus-visible:outline-none"
             >
-              Continue as guest
+              <span className="inline-block underline decoration-1 underline-offset-2 transition-transform duration-150 ease-out group-hover:scale-105 group-active:scale-100">
+                Continue as guest
+              </span>
             </button>
           </div>
         </div>

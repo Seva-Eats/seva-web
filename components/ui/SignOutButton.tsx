@@ -16,9 +16,10 @@ export function SignOutButton({ onClick, className }: SignOutButtonProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        'btn-plain mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-[#FECACA] bg-[#FEF2F2] py-3 font-bold text-[#DC2626] transition-colors',
+        'btn-plain mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-[#FECACA] bg-[#FEF2F2] py-3 text-[#DC2626] transition-colors',
         'hover:border-[#FCA5A5] hover:bg-[#FEE2E2] active:scale-[0.99]',
-        TypeClass.body,
+        TypeClass.authBtn,
+        'font-extrabold tracking-[0.01em]',
         className
       )}
     >

@@ -47,7 +47,12 @@ export function RequestFlowHeader({
         <button
           type="button"
           onClick={handleBack}
-          className="flex h-10 w-10 items-center justify-center"
+          className={cn(
+            'flex h-10 w-10 items-center justify-center rounded-full border border-transparent transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F07B2A]/35 focus-visible:ring-offset-1',
+            useCloseIcon
+              ? 'hover:border-[#F6C48B] hover:bg-[#FFF1E3] active:bg-[#FDE7CF]'
+              : 'hover:bg-[#F7F3EE] active:bg-[#EFE8DE]'
+          )}
           aria-label="Go back"
           style={{ color: colors.text }}
         >

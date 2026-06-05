@@ -1,97 +1,108 @@
-# Route optimization (math)
+# Route optimization (v1 math)
 
-How Phase 5 `lib/routing/` will plan routes. Ops flow: [ROUTING.md](./ROUTING.md). Build order: [ROADMAP.md](./ROADMAP.md).
+Short spec for Phase 5. **No drive-time matrix** — mock lat/lng in Postgres, straight-line distances, server-only.
 
-> **GitHub math:** `$inline$` and `$$block$$` (MathJax). [Docs](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/writing-mathematical-expressions)
+Ops flow: [ROUTING.md](./ROUTING.md). Build order: [ROADMAP.md](./ROADMAP.md).
 
----
-
-## Problem
-
-Each night is **CVRPTW**: depot $D$ (kitchen), stops $N = \{1,\ldots,n\}$, drivers $K = \{1,\ldots,m\}$.
-
-- Cost $c_{ij}$ = drive **minutes** from matrix API (not straight-line).
-- Each driver: tour $D \to \text{stops} \to D$, capacity $Q_k$, max stops $S_k^{\max}$, max duration $T_k^{\max}$.
-- Stop $i$ has window $[e_i, l_i]$ and service time $s_i$.
-
-Exact CVRPTW is NP-hard. **v1** uses a fast heuristic; upgrade to OR-Tools only if windows fail often in production.
+> **GitHub math:** inline `$...$`, block equations on their own line with `$$...$$`. [GitHub docs](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/writing-mathematical-expressions)
 
 ---
 
-## Goals (in order)
+## Problem (simplified)
 
-1. **Coverage** — every approved order on a route or in `overflow`
-2. **Freshness** — minimize delay from kitchen ready $t_0$ to first drop
-3. **Fairness** — similar $|R_k|$ per driver
-4. **Total drive** — minimize $\sum_k T_k$
+One driver, one night, fixed endpoints:
+
+$$\text{Gurdwara } D \;\to\; \text{stops } N=\{1,\ldots,n\} \;\to\; \text{driver home } H$$
+
+Typical $n \approx 5$. Addresses and coordinates live in `orders` + `kitchens` + `drivers` (seeded mock data for dev).
+
+**Goal:** pick visit order $\pi$ that minimizes total path length. NP-hard in general; $n \le 10$ so a fast heuristic is fine.
 
 ---
 
-## Best approach (v1 pipeline)
+## Distance (haversine)
+
+For stop $i$ at $(\phi_i, \lambda_i)$ and $j$ at $(\phi_j, \lambda_j)$ (radians), Earth radius $R = 6371\,\text{km}$:
+
+$$d_{ij} = 2R \arcsin\sqrt{\sin^2\frac{\Delta\phi}{2} + \cos\phi_i\cos\phi_j\sin^2\frac{\Delta\lambda}{2}}$$
+
+$\Delta\phi = \phi_j - \phi_i$, $\Delta\lambda = \lambda_j - \lambda_i$.  
+Convert $d_{ij}$ to estimated minutes with avg speed $\bar{v} = 40\,\text{km/h}$:
+
+$$t_{ij} = \frac{d_{ij}}{\bar{v}} \times 60$$
+
+Good enough for mock Mississauga/Brampton routes. Upgrade to matrix API only if production ETAs are consistently wrong.
+
+---
+
+## Tour cost
+
+For order $\pi = (\pi_1, \ldots, \pi_n)$:
+
+$$C(\pi) = d_{D,\pi_1} + \sum_{r=1}^{n-1} d_{\pi_r,\pi_{r+1}} + d_{\pi_n,H}$$
+
+**Minimize** $C(\pi)$.
+
+---
+
+## Algorithm (v1)
 
 ```text
-Matrix c_ij  →  k-means (k = m)  →  assign clusters to drivers  →  TSP per driver  →  validate
+Input: D, H, stops N with lat/lng from DB
+  1. Nearest-neighbor from D through all stops
+  2. 2-opt improvements on the middle segment (fixed D and H)
+  3. Write sequence to route_stops.sequence + ETAs from t_ij sum
+Output: rows in driver_routes + route_stops + qr_code per stop
 ```
 
-| Step | What | Why |
-|------|------|-----|
-| **Matrix** | Batch Mapbox/Google for $\{D\} \cup N$ and driver starts $p_k$ | Roads matter; haversine is wrong for sequencing |
-| **Cluster** | k-means on $(\text{lat}, \text{lng})$, $k = m$ | Group nearby recipients |
-| **Assign** | Hungarian ($m \le 10$) or greedy on $\text{cost}_{k,j}$ | Match clusters to drivers near that area |
-| **Sequence** | Nearest-neighbor + 2-opt on $c_{ij}$ | Short loop per driver |
-| **Validate** | Capacity, stops, $T_k$, windows | Failures → `overflow` for coordinator |
+### Step 1 — Nearest neighbor
 
-**Do not** run this in the browser. `POST /api/dispatch/generate` → Postgres `draft` routes.
+Current $c \leftarrow D$. Unvisited $U \leftarrow N$. Order $\pi \leftarrow []$.
 
----
+While $U \neq \emptyset$: pick $j = \arg\min_{i \in U} d_{c,i}$, append $j$ to $\pi$, $c \leftarrow j$, remove $j$ from $U$.  
+Append leg $d_{\pi_n,H}$ at the end.
 
-## Key math
+### Step 2 — 2-opt
 
-### Assignment
+For indices $1 \le i < j \le n$, reverse $\pi_i \ldots \pi_j$ if:
 
-Each stop $i$ assigned to one driver $k$ (or overflow):
+$$d_{\pi_{i-1},\pi_i} + d_{\pi_j,\pi_{j+1}} > d_{\pi_{i-1},\pi_j} + d_{\pi_i,\pi_{j+1}}$$
 
-$$\sum_{k \in K} x_{ik} = 1 \quad \forall i \in N$$
+(with $\pi_0 := D$, $\pi_{n+1} := H$). Repeat until no improvement.
 
-Capacity: $\sum_i d_i x_{ik} \le Q_k$. Stops: $\sum_i x_{ik} \le S_k^{\max}$.
+### Step 3 — ETAs
 
-### Tour time for driver $k$
+Kitchen ready at $t_0$. Arrival at stop $\pi_r$:
 
-For visit order $\pi$:
+$$A_{\pi_r} = t_0 + \sum_{k<r} t_{\pi_k,\pi_{k+1}} + \sum_{k<r} s_{\pi_k}$$
 
-$$T_k(\pi) = c_{D,\pi_1} + \sum_{r} c_{\pi_r,\pi_{r+1}} + c_{\pi_{|R_k|},D} + \sum_r s_{\pi_r}$$
-
-**2-opt:** reverse a segment if $c_{ab} + c_{cd} > c_{ac} + c_{bd}$.
-
-### Time windows
-
-Arrival $A_i$ from forward simulation along the route. Feasible if $e_i \le A_i \le l_i$. Lateness: $\text{late}_i = \max(0, A_i - l_i)$.
-
-### k-means (cluster)
-
-Assign stop $i$ to nearest centroid $\mu_j$, then update $\mu_j = \frac{1}{|C_j|}\sum_{i \in C_j} \mathbf{z}_i$. Roads are fixed in the next steps via $c_{ij}$.
-
-### Assign clusters to drivers
-
-Minimize $\sum_{k,j} \text{cost}_{k,j} a_{kj}$ with each cluster to exactly one driver. Use matrix times from $p_k$ through $D$ to stops in cluster $j$.
-
-### Live ETA
-
-$$\text{ETA} = \text{now} + \text{MatrixAPI}(p_{\text{gps}}, n_{\text{next}}) + s_n$$
-
-Re-optimize mid-shift (Phase 8): freeze completed stops, re-run pipeline on the rest with current $p_k$.
+Service time $s_i \approx 3\,\text{min}$ (hand-off). Store $A_{\pi_r}$ on `route_stops.eta_at`.
 
 ---
 
-## Code map (Phase 5)
+## Multiple drivers (later)
+
+Split stops across $m$ drivers by greedy balance: assign each stop to driver $k$ that adds least extra $d$, cap at $S_k^{\max}$ stops. Run the single-driver TSP per driver with their own $H_k$. v1 can use **manual assign** (Phase 4) first.
+
+---
+
+## Live ETA (Phase 3+)
+
+Driver GPS $(\phi_g, \lambda_g)$, next stop $n$:
+
+$$\text{ETA} = \text{now} + t_{g,n} + s_n$$
+
+Update `route_stops.eta_at` on each `POST /api/drivers/location` (throttled). Recipient sees it via Supabase Realtime on `route_stops`.
+
+---
+
+## Code map
 
 | Step | File |
 |------|------|
-| Matrix | `lib/routing/matrix.ts` |
-| Cluster | `lib/routing/cluster.ts` |
-| Assign | `lib/routing/assign.ts` |
-| TSP | `lib/routing/sequence.ts` |
-| Validate | `lib/routing/validate.ts` |
+| Haversine | `lib/routing/distance.ts` |
+| Nearest-neighbor + 2-opt | `lib/routing/sequence.ts` |
+| Persist | `lib/routing/persist.ts` |
 | API | `app/api/dispatch/generate/route.ts` |
 
-Manual dispatch first (Phase 4), then automate (Phase 5).
+**Never** run this in the browser.

@@ -1,46 +1,42 @@
 ---
 name: seva-routing
 description: >-
-  Seva Eats route optimization and dispatch. Use when implementing VRP,
-  driver_routes, route_stops, geocoding, or coordinator generate/finalize flows.
+  Seva Eats route optimization and dispatch. Use when implementing routes,
+  driver_routes, route_stops, QR scan, geocoding, or coordinator generate/finalize flows.
 ---
 
 # Seva Eats Routing
 
 ## Rules
 
-- Never run VRP solvers in React client components.
+- Never run route solvers in React client components.
 - Persist routes in `driver_routes` and `route_stops` (Supabase).
-- Use drive-time matrices (Mapbox/Google) for sequencing; `earthdistance` is preview-only.
-- Phase 0–3: mock or manual routes in `/seva` until `app/api/dispatch` exists.
+- **v1:** haversine distance on lat/lng in DB — **no** drive-time matrix API.
+- Tour shape: **Gurdwara $D$ → stops → driver home $H$**.
+- Each `route_stop` gets a `qr_code`; driver confirms via `/seva/scan/[code]`.
+- Phase 0–3: mock UI in `/seva` until SQL + APIs land.
 
 ## Phases
 
 | Phase | Behavior |
 |-------|----------|
-| 0–3 | Mock route in `constants/volunteer-deliveries.ts` |
-| 4 | Coordinator **confirms** tonight’s delivery volunteers → manual routes on map |
-| 5 | `lib/routing/` + generate API: cluster recipients, assign to confirmed drivers, sequence stops |
-| 8 | Re-optimize remaining stops after DROP / failure |
-
-## Operations (always)
-
-1. **Roster:** only coordinator-**confirmed** `driverIds` enter generate.
-2. **Locations:** kitchen depot + geocoded `orders` + driver start positions.
-3. **Optimize server-side:** minimize total drive time; balance stops; full coverage.
-4. **Live:** `POST /api/drivers/location` while `in_progress`.
+| 0–2 | Seed mock addresses; approve orders |
+| 3 | SQL routes, GPS pings, QR scan |
+| 4 | Manual dispatch on map |
+| 5 | `lib/routing/` generate API (nearest-neighbor + 2-opt) |
+| 8 | Re-sequence after DROP / failed delivery |
 
 ## Tables
 
-- `driver_routes`, `route_stops`, `deliveries`, `drivers.current_latitude/longitude`
-- *(planned)* `shifts` for sign-up / confirmed; `driver_location_pings` for history
+- `driver_routes`, `route_stops` (+ `qr_code`, `scanned_at`), `deliveries`, `drivers`
+- `driver_location_pings`, `shifts` *(migrations)*
 
 ## Volunteer UI
 
-- Home: `/seva`
+- Home: `/seva` → `/seva/route/pickup` → `/seva/route/stop/[id]`
+- Scan: `/seva/scan/[code]` *(planned)*
 - Settings: `/seva/profile`
-- Role helper: `lib/navigation/role-paths.ts`
 
 ## Full spec
 
-`docs/README.md` — index. Math uses GitHub `$...$` / `$$...$$` in `docs/ROUTE_OPTIMIZATION.md`.
+`docs/ROUTING.md`, `docs/ROUTE_OPTIMIZATION.md` — math uses GitHub `$...$` / `$$...$$`.

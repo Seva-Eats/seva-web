@@ -26,17 +26,35 @@ export function MealGridCard({
 
   return (
     <div
-      className="relative flex flex-col rounded-2xl border-2 bg-white p-3 pb-3.5"
-      style={{
-        borderColor: isSelected ? '#F07B2A' : '#E8E3DA',
-        boxShadow: isSelected ? '0 2px 12px rgba(240, 123, 42, 0.12)' : '0 1px 4px rgba(0,0,0,0.04)',
-      }}
+      className={cn(
+        'relative flex flex-col rounded-2xl border-2 bg-white p-3 pb-3.5 transition-all duration-150',
+        isSelected
+          ? 'border-[#F07B2A] shadow-[0_2px_12px_rgba(240,123,42,0.12)]'
+          : 'cursor-pointer border-[#E8E3DA] shadow-[0_1px_4px_rgba(0,0,0,0.04)] hover:border-[#F7B37B] hover:shadow-[0_4px_14px_rgba(240,123,42,0.14)] active:scale-[0.995]'
+      )}
+      onClick={isSelected ? undefined : onAdd}
+      onKeyDown={
+        isSelected
+          ? undefined
+          : (event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                onAdd();
+              }
+            }
+      }
+      role={isSelected ? undefined : 'button'}
+      tabIndex={isSelected ? -1 : 0}
+      aria-label={isSelected ? undefined : `Add ${meal.name}`}
     >
       {isSelected ? (
         <div className="absolute right-2 top-2 flex items-center gap-0.5 rounded-full bg-[#F07B2A] px-1 py-0.5">
           <button
             type="button"
-            onClick={onDecrement}
+            onClick={(event) => {
+              event.stopPropagation();
+              onDecrement();
+            }}
             className="flex h-6 w-6 items-center justify-center text-white"
             aria-label={`Decrease ${meal.name}`}
           >
@@ -47,7 +65,10 @@ export function MealGridCard({
           </span>
           <button
             type="button"
-            onClick={onIncrement}
+            onClick={(event) => {
+              event.stopPropagation();
+              onIncrement();
+            }}
             className="flex h-6 w-6 items-center justify-center text-white"
             aria-label={`Increase ${meal.name}`}
           >
@@ -55,14 +76,12 @@ export function MealGridCard({
           </button>
         </div>
       ) : (
-        <button
-          type="button"
-          onClick={onAdd}
-          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#F07B2A] text-white active:scale-95"
-          aria-label={`Add ${meal.name}`}
+        <div
+          className="pointer-events-none absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#F07B2A] text-white"
+          aria-hidden="true"
         >
           <Plus size={16} strokeWidth={3} />
-        </button>
+        </div>
       )}
 
       <div

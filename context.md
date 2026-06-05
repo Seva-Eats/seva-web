@@ -33,7 +33,7 @@ Sacred logistics for Gurdwaras: free langar, coordinator dispatch, sevadar route
 | Onboarding + auth | ✅ | `app/onboarding/*`, Supabase OAuth/email |
 | Role choice | ✅ | Slide 2 → `recipient` \| `dasher` in `UserContext` |
 | Recipient meal flow | ✅ UI, **mock data** | `app/request/*`, `context/RequestContext.tsx` (localStorage) |
-| Volunteer home | ✅ **mock route** | `app/seva/page.tsx`, `constants/volunteer-deliveries.ts` |
+| Volunteer home | ✅ **mock route + flow** | `app/seva/page.tsx`, `app/seva/route/*`, `constants/volunteer-deliveries.ts` |
 | Volunteer settings | ✅ | `app/seva/profile/page.tsx` |
 | Role routing | ✅ | `lib/navigation/role-paths.ts`, `components/AuthGate.tsx` |
 | Supabase auth + profile RPC | ✅ | `upsert_recipient_profile` on sign-in |
@@ -44,9 +44,9 @@ Sacred logistics for Gurdwaras: free langar, coordinator dispatch, sevadar route
 - `supabase/migrations/` in this repo (migrations exist only in cloud)
 - Coordinator `/admin` console
 - Kitchen 6-stage workflow
-- Real maps on tracking/dispatch (scaffold: `components/map/SevaMap.tsx`, `lib/map/config.ts`)
-- Route optimizer API
-- Live GPS pings + Realtime
+- SQL-backed routes, GPS pings, QR scan confirm
+- Route optimizer API (`lib/routing/`, haversine TSP)
+- Live Realtime tracking from `driver_location_pings`
 - WhatsApp bot
 - Four seva types (ingredient, roti, packing, delivery) — only generic `dasher` role
 
@@ -85,7 +85,7 @@ Coordinator Admin       →  API optimize    →  driver_routes + route_stops
 Sevadar (active shift)  →  location pings  →  Realtime → map / ETA
 ```
 
-Dispatch: confirm sevadars → geocoded orders + kitchen → server optimizes routes → finalize → GPS. See [docs/ROUTING.md](./docs/ROUTING.md) and [docs/ROUTE_OPTIMIZATION.md](./docs/ROUTE_OPTIMIZATION.md).
+Dispatch: confirm sevadars → mock/geocoded addresses in Postgres → server sequences Gurdwara → stops → driver home (haversine TSP) → finalize + QR per stop → GPS + scan. See [docs/ROUTING.md](./docs/ROUTING.md) and [docs/ROUTE_OPTIMIZATION.md](./docs/ROUTE_OPTIMIZATION.md).
 
 ---
 

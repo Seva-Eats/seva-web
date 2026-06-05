@@ -1,6 +1,7 @@
 'use client';
 
 import maplibregl from 'maplibre-gl';
+import type { Feature, Point } from 'geojson';
 import { useEffect, useRef } from 'react';
 
 import { getMapStyleUrl, OSM_RASTER_STYLE } from '@/lib/map/config';
@@ -212,37 +213,48 @@ export function SevaMap({
     const map = mapRef.current;
     if (!map || !showUserLocation || !navigator.geolocation) return;
 
+    const sourceId = 'user-location';
+    const layerId = 'user-location-dot';
+
+    const upsertUserLocation = (lat: number, lng: number) => {
+      if (!map.isStyleLoaded()) return;
+
+      const pointData: Feature<Point> = {
+        type: 'Feature',
+        properties: {},
+        geometry: { type: 'Point', coordinates: [lng, lat] },
+      };
+
+      const source = map.getSource(sourceId) as maplibregl.GeoJSONSource | undefined;
+      if (source) {
+        source.setData(pointData);
+        return;
+      }
+
+      map.addSource(sourceId, {
+        type: 'geojson',
+        data: pointData,
+      });
+
+      if (!map.getLayer(layerId)) {
+        map.addLayer({
+          id: layerId,
+          type: 'circle',
+          source: sourceId,
+          paint: {
+            'circle-radius': 7,
+            'circle-color': '#3B82F6',
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#fff',
+          },
+        });
+      }
+    };
+
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
-        if (!map.getSource('user-location')) {
-          map.addSource('user-location', {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              properties: {},
-              geometry: { type: 'Point', coordinates: [lng, lat] },
-            },
-          });
-          map.addLayer({
-            id: 'user-location-dot',
-            type: 'circle',
-            source: 'user-location',
-            paint: {
-              'circle-radius': 7,
-              'circle-color': '#3B82F6',
-              'circle-stroke-width': 2,
-              'circle-stroke-color': '#fff',
-            },
-          });
-        } else {
-          const source = map.getSource('user-location') as maplibregl.GeoJSONSource;
-          source.setData({
-            type: 'Feature',
-            properties: {},
-            geometry: { type: 'Point', coordinates: [lng, lat] },
-          });
-        }
+        upsertUserLocation(lat, lng);
       },
       undefined,
       { enableHighAccuracy: false, maximumAge: 30000, timeout: 10000 }

@@ -2,10 +2,12 @@
 
 | File | Use |
 |------|-----|
-| [ROADMAP.md](./ROADMAP.md) | What to build, phase by phase |
-| [ROUTING.md](./ROUTING.md) | Dispatch ops, APIs, tables, live GPS |
-| [ROUTE_OPTIMIZATION.md](./ROUTE_OPTIMIZATION.md) | **How routing math works** (CVRPTW + v1 heuristic) |
+| [ROADMAP.md](./ROADMAP.md) | Phases, checkboxes, what’s done |
+| [ROUTING.md](./ROUTING.md) | Supabase backend, GPS, QR scan flow |
+| [ROUTE_OPTIMIZATION.md](./ROUTE_OPTIMIZATION.md) | v1 route math (haversine TSP, GitHub LaTeX) |
 
-**Math on GitHub:** inline `$c_{ij}$`, block equations on their own line with `$$ ... $$`. See [GitHub: mathematical expressions](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/writing-mathematical-expressions).
+**Math on GitHub:** `$c_{ij}$` inline; block equations on their own line with `$$...$$`.
 
-**Rules:** VRP runs on the server only. Use Mapbox/Google **drive-time matrix** for routing; haversine / `earthdistance` is preview only.
+**v1 routing:** mock lat/lng in Postgres → Gurdwara → ~5 stops → driver home → nearest-neighbor + 2-opt. No drive-time matrix.
+
+**Delivery proof:** QR on each `route_stop`; driver scans at door like Amazon.

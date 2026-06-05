@@ -1,106 +1,131 @@
-# Dispatch & routing
+# Dispatch, Supabase backend & live tracking
 
-Server-side dispatch for Seva Eats. **Math:** [ROUTE_OPTIMIZATION.md](./ROUTE_OPTIMIZATION.md). **Phases:** [ROADMAP.md](./ROADMAP.md).
-
----
-
-## Service night (how it works)
-
-1. Coordinator **confirms** delivery sevadars for tonight (`shifts.status = confirmed` → `driverIds`).
-2. **Approved orders** have geocoded `delivery_latitude/longitude`; kitchen = depot $D$.
-3. **Generate** (Phase 5): matrix → cluster → assign → sequence → `driver_routes` + `route_stops` as `draft`.
-4. Coordinator **reviews** map, fixes overflow, **finalize** → `assigned` + notifications.
-5. Sevadars run `/seva`; **GPS pings** every 15–30s → ETAs; re-optimize on DROP (Phase 8).
-
-Never run the optimizer in the client.
+How data flows from kitchen → driver → recipient. Math: [ROUTE_OPTIMIZATION.md](./ROUTE_OPTIMIZATION.md). Phases: [ROADMAP.md](./ROADMAP.md).
 
 ---
 
-## Inputs & outputs
+## One service night (end state)
 
-| Input | Source |
-|-------|--------|
-| Stops | `orders` (approved, lat/lng) |
-| Drivers | Confirmed `drivers` + capacity / max stops |
-| Depot | `kitchens`, `menus.ready_by_at` |
-| Times | Mapbox/Google matrix (server env) |
+```text
+1. Seed / approve   orders + mock addresses (lat/lng in DB)
+2. Confirm roster   shifts → driver_ids for tonight
+3. Plan route       Gurdwara D → ~5 stops → driver home H (manual or generate API)
+4. Finalize         driver_routes.status = assigned, qr_code per route_stop
+5. Driver runs /seva, pings GPS, scans QR at each door
+6. Recipient        Realtime on orders + route_stops → map + ETA
+```
+
+---
+
+## Supabase tables (existing + planned)
 
 | Table | Role |
 |-------|------|
-| `driver_routes` | One route per sevadar per night (`draft` → `assigned` → `in_progress` → `completed`) |
-| `route_stops` | Ordered stops + ETAs |
-| `deliveries` | Order ↔ driver ↔ stop |
-| `route_optimization_runs` | Audit JSON *(migration)* |
+| `kitchens` | Depot $D$ — `latitude`, `longitude`, `name` |
+| `orders` | Recipient requests — `delivery_*`, `status` |
+| `drivers` | Sevadar profile + `current_latitude/longitude` |
+| `driver_routes` | One row per driver per night (`draft` → `assigned` → `in_progress` → `completed`) |
+| `route_stops` | Ordered stops: `sequence`, `eta_at`, **`qr_code`**, **`scanned_at`** |
+| `deliveries` | Links `order_id` ↔ `driver_id` ↔ `route_stop_id` |
+| `driver_location_pings` | GPS history *(migration)* |
+| `shifts` | Who is delivering; `status = confirmed` *(migration)* |
+| `route_optimization_runs` | Audit JSON from generate *(migration)* |
+
+**RLS:** recipients read own `orders` + assigned driver ping; drivers read own `driver_routes`; staff read kitchen scope.
 
 ---
 
-## Algorithms
+## Mock addresses (v1)
 
-| Version | When |
-|---------|------|
-| **v0** | Phase 4 — manual assign on map |
-| **v1** | Phase 5 — heuristic in `lib/routing/` ([math](./ROUTE_OPTIMIZATION.md)) |
-| **v2** | OR-Tools only if v1 misses time windows often |
-| **v3** | Phase 8 — re-run on remaining stops after DROP / failure |
+No matrix API. Seed ~5 real-ish Brampton/Mississauga points in `supabase/seed/dev_mississauga.sql`:
+
+| Point | Example |
+|-------|---------|
+| $D$ Gurdwara | Ontario Khalsa Darbar, 43.6472, -79.6517 |
+| Stop 1–5 | `orders.delivery_latitude/longitude` from seed |
+| $H$ Driver home | `drivers.home_latitude/longitude` |
+
+Coordinator picks 5 approved orders → optimizer orders them → saves `route_stops` rows.
+
+---
+
+## QR ticketing (Amazon-style)
+
+Each `route_stop` gets a unique `qr_code` (e.g. `SEVA-3F8K2Q`) when route is **finalized**.
+
+| Step | Who | What |
+|------|-----|------|
+| Generate | Server | `qr_code = encode(route_stop_id)` stored in DB |
+| Print / show | Kitchen or driver app | QR encodes `https://sevaeats.vercel.app/seva/scan/{qr_code}` |
+| Scan | Driver at door | Camera → `/seva/scan/[code]` |
+| Confirm | API | Verify code → set `scanned_at`, `route_stops.status = delivered`, `orders.status = delivered` |
+
+Prevents marking the wrong house: code is bound to one `order_id` + address in DB.
 
 ---
 
 ## APIs
 
-### `POST /api/dispatch/generate`
+### `POST /api/dispatch/generate` (Phase 5)
 
 ```json
-{ "kitchenId": "uuid", "serviceDate": "2026-06-04", "driverIds": [], "orderIds": [] }
+{ "kitchenId": "uuid", "serviceDate": "2026-06-04", "driverId": "uuid", "orderIds": ["…"] }
 ```
 
-→ `{ "runId", "routes", "overflow" }` — persists **draft** routes.
+Runs haversine TSP ($D \to$ stops $\to H$), writes `draft` `driver_routes` + `route_stops`.
 
 ### `POST /api/dispatch/finalize`
 
-```json
-{ "runId": "uuid" }
-```
+Sets `assigned`, generates `qr_code` per stop, creates `deliveries` + `notifications`.
 
-→ routes **assigned**, `deliveries` updated, `notifications` created.
-
-### `POST /api/drivers/location` (Phase 3+)
+### `POST /api/drivers/location` (Phase 3)
 
 ```json
-{ "lat", "lng", "routeId" }
+{ "lat": 43.71, "lng": -79.76, "routeId": "uuid" }
 ```
 
-→ `drivers.current_*`, `driver_location_pings`; throttled ETA to next pending stop.
+→ `drivers.current_*`, insert `driver_location_pings`, recompute ETA to next unscanned stop.
+
+### `POST /api/deliveries/scan` (Phase 3)
+
+```json
+{ "qrCode": "SEVA-3F8K2Q" }
+```
+
+→ auth driver, match `route_stops`, set `scanned_at`, advance route phase.
 
 ---
 
 ## Live tracking
 
-| Viewer | Sees |
-|--------|------|
-| Sevadar | Own `route_stops` |
-| Recipient | Own order’s driver (RLS) |
-| Coordinator | All routes + pings for `kitchen_id` + date |
+| Viewer | Data | Channel |
+|--------|------|---------|
+| Driver | Own `route_stops`, next QR | `/seva` + polling or Realtime |
+| Recipient | Driver ping + stop status for their `order_id` | Realtime on `driver_location_pings`, `orders` |
+| Coordinator | All routes + pings for kitchen + date | `/admin` map |
 
-Realtime on `orders` / `deliveries` / `route_stops` as phases land.
+**ETA:** $\text{ETA} = \text{now} + t_{\text{gps},\text{next}}$ — see [ROUTE_OPTIMIZATION.md](./ROUTE_OPTIMIZATION.md).
 
----
-
-## Where code lives
-
-| Piece | Path |
-|-------|------|
-| Algorithm | `lib/routing/*` (server only) |
-| Matrix | `lib/routing/matrix.ts` |
-| Map UI | `components/map/SevaMap.tsx` |
-| Sevadar app | `app/seva/page.tsx` → SQL in Phase 3 |
-
-**Today:** mock route in `constants/volunteer-deliveries.ts`; DB tables exist but unused.
+Throttle pings to 15–30 s while `driver_routes.status = in_progress`.
 
 ---
 
-## Env (later)
+## What exists today
+
+| Piece | Status |
+|-------|--------|
+| Mock volunteer UI | ✅ `app/seva/route/*`, `constants/volunteer-deliveries.ts` |
+| Maps | ✅ `VolunteerRouteMap`, `SevaMap` |
+| SQL routes / GPS / QR | ❌ not wired |
+| Optimizer | ❌ `lib/routing/` not created |
+
+---
+
+## Env
 
 ```env
-MAPBOX_ACCESS_TOKEN=     # server — matrix + geocode
-# or GOOGLE_MAPS_API_KEY=
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+# Optional later for geocoding only:
+# MAPBOX_ACCESS_TOKEN=
 ```
