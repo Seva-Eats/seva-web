@@ -44,7 +44,7 @@ export async function middleware(request: NextRequest) {
 
   if (onboarded && isEarlyOnboarding(pathname)) {
     const url = request.nextUrl.clone();
-    url.pathname = user ? '/request/location' : '/onboarding/sign-in';
+    url.pathname = user ? '/' : '/onboarding/sign-in';
     return NextResponse.redirect(url);
   }
 

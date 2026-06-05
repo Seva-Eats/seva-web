@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
+import { PageLoader } from '@/components/ui/PageLoader';
 import { ONBOARDING_STORAGE_KEY } from '@/constants/onboarding';
 import { useUser } from '@/context';
 import { getHomePathForRole } from '@/lib/navigation/role-paths';
@@ -33,9 +34,5 @@ export default function HomePage() {
     });
   }, [router, isUserLoading, user?.isAuthenticated, user?.role]);
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-[#FFF8F0]">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#F97316] border-t-transparent" />
-    </div>
-  );
+  return <PageLoader message="Opening Seva Eats..." />;
 }

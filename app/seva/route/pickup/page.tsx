@@ -3,13 +3,14 @@
 import { MapPin, Navigation, Package } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { AppShell } from '@/components/AppShell';
-import { RouteMapPlaceholder } from '@/components/seva/RouteMapPlaceholder';
 import { SevaFlowHeader } from '@/components/seva/SevaFlowHeader';
 import { SevaStickyFooter } from '@/components/seva/SevaStickyFooter';
+import { VolunteerRouteMap } from '@/components/seva/VolunteerRouteMap';
 import { VolunteerStepProgress } from '@/components/seva/VolunteerStepProgress';
+import { PageLoader } from '@/components/ui/PageLoader';
 import { TypeClass } from '@/constants/typography';
 import { useVolunteerRoute } from '@/context/VolunteerRouteContext';
 import { buildMapsDirectionsUrl } from '@/lib/volunteer-route/helpers';
@@ -20,11 +21,16 @@ const PICKUP_STEPS = ['Head to gurdwara', 'Arrive & load meals', 'Start deliveri
 export default function SevaPickupRoutePage() {
   const router = useRouter();
   const { route, advancePickup } = useVolunteerRoute();
+  const [isAdvancing, setIsAdvancing] = useState(false);
 
   const stepIndex = useMemo(() => {
     if (route.phase === 'pickup_drive') return 0;
     if (route.phase === 'pickup_arrived') return 1;
-    if (route.phase === 'stop_drive' || route.phase === 'stop_arrived' || route.phase === 'stop_deliver') {
+    if (
+      route.phase === 'stop_drive' ||
+      route.phase === 'stop_arrived' ||
+      route.phase === 'stop_deliver'
+    ) {
       return 2;
     }
     return 0;
@@ -43,15 +49,29 @@ export default function SevaPickupRoutePage() {
       ? "I've arrived at the gurdwara"
       : 'Meals loaded — start deliveries';
 
-  const handlePrimary = () => {
+  const handlePrimary = async () => {
+    setIsAdvancing(true);
+    await new Promise((r) => setTimeout(r, 450));
+
     if (route.phase === 'pickup_arrived') {
       const firstStopId = route.stops[0]?.id;
       advancePickup();
-      if (firstStopId) router.push(`/seva/route/stop/${firstStopId}`);
-      return;
+      if (firstStopId) {
+        router.push(`/seva/route/stop/${firstStopId}`);
+        return;
+      }
     }
     advancePickup();
+    setIsAdvancing(false);
   };
+
+  if (isAdvancing) {
+    return (
+      <AppShell>
+        <PageLoader message="Updating your route..." />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
@@ -59,10 +79,16 @@ export default function SevaPickupRoutePage() {
         <SevaFlowHeader title="Pickup" subtitle={route.kitchenName} backHref="/seva" />
 
         <div className="space-y-4 p-4">
-          <RouteMapPlaceholder
-            label="Pickup location"
+          <VolunteerRouteMap
+            title="Gurdwara pickup"
             address={route.pickupAddress}
-            highlight="pickup"
+            destination={{
+              latitude: route.pickupLatitude,
+              longitude: route.pickupLongitude,
+              label: route.kitchenName,
+              color: '#059669',
+            }}
+            height={300}
           />
 
           <VolunteerStepProgress steps={PICKUP_STEPS} currentIndex={stepIndex} title="Pickup progress" />
@@ -94,18 +120,18 @@ export default function SevaPickupRoutePage() {
             rel="noopener noreferrer"
             className={cn(
               TypeClass.btn,
-              'flex w-full items-center justify-center gap-2 rounded-[28px] border border-[#E8E3DA] bg-white py-3.5 font-semibold text-[#1A1A1A]'
+              'btn-plain flex w-full items-center justify-center gap-2 rounded-[28px] border border-[#E8E3DA] bg-white py-3.5 font-semibold text-[#1A1A1A] shadow-sm'
             )}
           >
             <Navigation size={18} className="text-[#F07B2A]" />
-            Open in Maps
+            Open turn-by-turn in Google Maps
           </a>
         </div>
 
         <SevaStickyFooter>
           <button
             type="button"
-            onClick={handlePrimary}
+            onClick={() => void handlePrimary()}
             className={cn(
               TypeClass.btn,
               'flex w-full items-center justify-center rounded-[28px] bg-[#F07B2A] py-4 font-bold text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)]'
@@ -115,7 +141,7 @@ export default function SevaPickupRoutePage() {
           </button>
           <Link
             href="/seva"
-            className={cn(TypeClass.caption, 'mt-3 block text-center text-[#6B7280] underline')}
+            className={cn(TypeClass.caption, 'btn-plain mt-3 block text-center text-[#6B7280] underline')}
           >
             Back to route overview
           </Link>

@@ -5,7 +5,6 @@ import {
   Crosshair,
   HandHelping,
   History,
-  LogOut,
   Map,
   MapPin,
   HelpCircle,
@@ -20,6 +19,7 @@ import { AppShell } from '@/components/AppShell';
 import { AuthProviderIcon } from '@/components/auth/AuthProviderIcon';
 import { SevaMap } from '@/components/map/SevaMap';
 import { PageHeader } from '@/components/PageHeader';
+import { SignOutButton } from '@/components/ui/SignOutButton';
 import { AUTH_PROVIDER_LABELS } from '@/constants/auth';
 import { TypeClass } from '@/constants/typography';
 import { useLocation, useUser, type UserRole } from '@/context';
@@ -190,14 +190,7 @@ export default function ProfilePage() {
                 Signed in through onboarding. Sign out to switch accounts.
               </p>
 
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className={cn(TypeClass.body, 'mt-3 flex w-full items-center justify-center gap-2 py-2 font-semibold text-[#EF4444]')}
-              >
-                <LogOut size={18} />
-                Sign Out
-              </button>
+              <SignOutButton onClick={handleSignOut} />
             </div>
           </section>
 

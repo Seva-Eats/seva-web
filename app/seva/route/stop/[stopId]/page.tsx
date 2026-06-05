@@ -3,13 +3,14 @@
 import { MapPin, Navigation, UtensilsCrossed } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { AppShell } from '@/components/AppShell';
-import { RouteMapPlaceholder } from '@/components/seva/RouteMapPlaceholder';
 import { SevaFlowHeader } from '@/components/seva/SevaFlowHeader';
 import { SevaStickyFooter } from '@/components/seva/SevaStickyFooter';
+import { VolunteerRouteMap } from '@/components/seva/VolunteerRouteMap';
 import { VolunteerStepProgress } from '@/components/seva/VolunteerStepProgress';
+import { PageLoader } from '@/components/ui/PageLoader';
 import { TypeClass } from '@/constants/typography';
 import { useVolunteerRoute } from '@/context/VolunteerRouteContext';
 import { buildMapsDirectionsUrl, formatStopAddress } from '@/lib/volunteer-route/helpers';
@@ -22,6 +23,7 @@ export default function SevaStopRoutePage() {
   const params = useParams<{ stopId: string }>();
   const stopId = params.stopId;
   const { route, advanceStop } = useVolunteerRoute();
+  const [isAdvancing, setIsAdvancing] = useState(false);
 
   const stop = useMemo(
     () => route.stops.find((s) => s.id === stopId),
@@ -39,6 +41,11 @@ export default function SevaStopRoutePage() {
   }, [route.phase, stop?.status]);
 
   const activeStop = route.stops.find((s) => s.status === 'en_route');
+
+  const previousStop = useMemo(() => {
+    if (!stop) return undefined;
+    return route.stops.find((s) => s.sequence === stop.sequence - 1);
+  }, [route.stops, stop]);
 
   useEffect(() => {
     if (!stop) {
@@ -58,8 +65,29 @@ export default function SevaStopRoutePage() {
     return null;
   }
 
+  if (isAdvancing) {
+    return (
+      <AppShell>
+        <PageLoader message="Saving delivery progress..." />
+      </AppShell>
+    );
+  }
+
   const address = formatStopAddress(stop);
   const mapsUrl = buildMapsDirectionsUrl(address);
+
+  const origin =
+    previousStop?.status === 'delivered'
+      ? {
+          latitude: previousStop.latitude,
+          longitude: previousStop.longitude,
+          label: previousStop.recipientName,
+        }
+      : {
+          latitude: route.pickupLatitude,
+          longitude: route.pickupLongitude,
+          label: route.kitchenName,
+        };
 
   const primaryLabel =
     route.phase === 'stop_drive'
@@ -70,7 +98,10 @@ export default function SevaStopRoutePage() {
           ? 'Complete this delivery'
           : 'Continue';
 
-  const handlePrimary = () => {
+  const handlePrimary = async () => {
+    setIsAdvancing(true);
+    await new Promise((r) => setTimeout(r, 450));
+
     if (route.phase === 'stop_deliver') {
       const nextPending = route.stops.find((s) => s.status === 'pending' && s.id !== stop.id);
       advanceStop();
@@ -82,6 +113,7 @@ export default function SevaStopRoutePage() {
       return;
     }
     advanceStop();
+    setIsAdvancing(false);
   };
 
   return (
@@ -94,13 +126,19 @@ export default function SevaStopRoutePage() {
         />
 
         <div className="space-y-4 p-4">
-          <RouteMapPlaceholder label="Drop-off" address={address} highlight="dropoff" />
-
-          <VolunteerStepProgress
-            steps={STOP_STEPS}
-            currentIndex={stepIndex}
-            title="Delivery steps"
+          <VolunteerRouteMap
+            title={`${stop.recipientName}`}
+            address={address}
+            destination={{
+              latitude: stop.latitude,
+              longitude: stop.longitude,
+              label: stop.recipientName,
+            }}
+            origin={origin}
+            height={300}
           />
+
+          <VolunteerStepProgress steps={STOP_STEPS} currentIndex={stepIndex} title="Delivery steps" />
 
           <div className="rounded-2xl border-2 border-[#F07B2A] bg-white p-4">
             <p className={cn(TypeClass.label, 'text-[#F07B2A]')}>RECIPIENT</p>
@@ -118,9 +156,7 @@ export default function SevaStopRoutePage() {
               </p>
             </div>
             {stop.notes && (
-              <p className={cn(TypeClass.caption, 'mt-2 text-[#6B7280]')}>
-                Note · {stop.notes}
-              </p>
+              <p className={cn(TypeClass.caption, 'mt-2 text-[#6B7280]')}>Note · {stop.notes}</p>
             )}
           </div>
 
@@ -130,11 +166,11 @@ export default function SevaStopRoutePage() {
             rel="noopener noreferrer"
             className={cn(
               TypeClass.btn,
-              'flex w-full items-center justify-center gap-2 rounded-[28px] border border-[#E8E3DA] bg-white py-3.5 font-semibold text-[#1A1A1A]'
+              'btn-plain flex w-full items-center justify-center gap-2 rounded-[28px] border border-[#E8E3DA] bg-white py-3.5 font-semibold text-[#1A1A1A] shadow-sm'
             )}
           >
             <Navigation size={18} className="text-[#F07B2A]" />
-            Open in Maps
+            Open turn-by-turn in Google Maps
           </a>
 
           <ul className="rounded-2xl border border-[#E8E3DA] bg-white/80 p-3">
@@ -151,9 +187,7 @@ export default function SevaStopRoutePage() {
                 <span>
                   {s.sequence}. {s.recipientName}
                 </span>
-                <span>
-                  {s.status === 'delivered' ? 'Done' : s.id === stop.id ? 'Now' : '—'}
-                </span>
+                <span>{s.status === 'delivered' ? 'Done' : s.id === stop.id ? 'Now' : '—'}</span>
               </li>
             ))}
           </ul>
@@ -162,7 +196,7 @@ export default function SevaStopRoutePage() {
         <SevaStickyFooter>
           <button
             type="button"
-            onClick={handlePrimary}
+            onClick={() => void handlePrimary()}
             className={cn(
               TypeClass.btn,
               'flex w-full items-center justify-center rounded-[28px] bg-[#F07B2A] py-4 font-bold text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)]'
@@ -172,7 +206,7 @@ export default function SevaStopRoutePage() {
           </button>
           <Link
             href="/seva"
-            className={cn(TypeClass.caption, 'mt-3 block text-center text-[#6B7280] underline')}
+            className={cn(TypeClass.caption, 'btn-plain mt-3 block text-center text-[#6B7280] underline')}
           >
             Back to route overview
           </Link>

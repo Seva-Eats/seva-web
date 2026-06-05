@@ -38,19 +38,38 @@ function persistRoute(route: VolunteerActiveRoute) {
   }
 }
 
+function mergeRouteWithDefaults(route: VolunteerActiveRoute): VolunteerActiveRoute {
+  const mockStops = new Map(MOCK_VOLUNTEER_ROUTE.stops.map((s) => [s.id, s]));
+  return {
+    ...MOCK_VOLUNTEER_ROUTE,
+    ...route,
+    pickupLatitude: route.pickupLatitude ?? MOCK_VOLUNTEER_ROUTE.pickupLatitude,
+    pickupLongitude: route.pickupLongitude ?? MOCK_VOLUNTEER_ROUTE.pickupLongitude,
+    stops: route.stops.map((stop) => {
+      const fallback = mockStops.get(stop.id);
+      return {
+        ...stop,
+        latitude: stop.latitude ?? fallback?.latitude ?? MOCK_VOLUNTEER_ROUTE.pickupLatitude,
+        longitude: stop.longitude ?? fallback?.longitude ?? MOCK_VOLUNTEER_ROUTE.pickupLongitude,
+      };
+    }),
+  };
+}
+
 function normalizeRoute(route: VolunteerActiveRoute): VolunteerActiveRoute {
-  if (route.phase) return route;
-  if (route.status === 'completed') {
-    return { ...route, phase: 'route_done' };
+  const merged = mergeRouteWithDefaults(route);
+  if (merged.phase) return merged;
+  if (merged.status === 'completed') {
+    return { ...merged, phase: 'route_done' };
   }
-  if (route.status === 'in_progress') {
-    const hasEnRoute = route.stops.some((s) => s.status === 'en_route');
-    const allPending = route.stops.every((s) => s.status === 'pending');
-    if (allPending) return { ...route, phase: 'pickup_drive' };
-    if (hasEnRoute) return { ...route, phase: 'stop_drive' };
-    return { ...route, phase: 'pickup_arrived' };
+  if (merged.status === 'in_progress') {
+    const hasEnRoute = merged.stops.some((s) => s.status === 'en_route');
+    const allPending = merged.stops.every((s) => s.status === 'pending');
+    if (allPending) return { ...merged, phase: 'pickup_drive' };
+    if (hasEnRoute) return { ...merged, phase: 'stop_drive' };
+    return { ...merged, phase: 'pickup_arrived' };
   }
-  return { ...route, phase: 'idle' };
+  return { ...merged, phase: 'idle' };
 }
 
 function loadStoredRoute(): VolunteerActiveRoute | null {

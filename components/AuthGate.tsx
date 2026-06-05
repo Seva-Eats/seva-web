@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 
+import { PageLoader } from '@/components/ui/PageLoader';
 import { ONBOARDING_STORAGE_KEY } from '@/constants/onboarding';
 import { useUser } from '@/context';
 import {
@@ -15,14 +16,6 @@ import * as storage from '@/lib/storage';
 
 const AUTH_PATHS = ['/auth/callback'];
 const ONBOARDING_PREFIX = '/onboarding';
-
-function isLateOnboardingRoute(pathname: string) {
-  return (
-    pathname.startsWith('/onboarding/sign-in') ||
-    pathname.startsWith('/onboarding/email') ||
-    pathname.startsWith('/onboarding/verify')
-  );
-}
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -76,7 +69,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (hasOnboarded && isAuthenticated && inOnboarding && isLateOnboardingRoute(pathname)) {
+    if (hasOnboarded && isAuthenticated && inOnboarding) {
       router.replace(getHomePathForRole(user?.role));
       return;
     }
@@ -114,11 +107,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }, [pathname, router]);
 
   if (!isReady || isUserLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FFF8F0]">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#F97316] border-t-transparent" />
-      </div>
-    );
+    return <PageLoader message="Getting things ready..." />;
   }
 
   return <>{children}</>;

@@ -3,11 +3,12 @@
 import { Car, MapPin, Navigation, Package } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { AppShell } from '@/components/AppShell';
 import { SevaFlowHeader } from '@/components/seva/SevaFlowHeader';
 import { SevaStickyFooter } from '@/components/seva/SevaStickyFooter';
+import { PageLoader } from '@/components/ui/PageLoader';
 import { TypeClass } from '@/constants/typography';
 import type { VolunteerRouteStatus } from '@/constants/volunteer-deliveries';
 import { useVolunteerRoute } from '@/context/VolunteerRouteContext';
@@ -28,15 +29,26 @@ const ROUTE_STATUS_LABEL: Record<VolunteerRouteStatus, string> = {
 export default function SevaDeliveriesPage() {
   const router = useRouter();
   const { route, startRoute } = useVolunteerRoute();
+  const [isStarting, setIsStarting] = useState(false);
 
   const nextStop = useMemo(() => getActiveStop(route), [route]);
   const deliveredCount = countDeliveredStops(route);
   const continuePath = getContinueRoutePath(route.phase, route);
 
-  const handleStartRoute = () => {
+  const handleStartRoute = async () => {
+    setIsStarting(true);
     startRoute();
+    await new Promise((r) => setTimeout(r, 400));
     router.push('/seva/route/pickup');
   };
+
+  if (isStarting) {
+    return (
+      <AppShell>
+        <PageLoader message="Preparing your route..." />
+      </AppShell>
+    );
+  }
 
   const openDirections = () => {
     router.push(continuePath);
@@ -170,7 +182,7 @@ export default function SevaDeliveriesPage() {
           {route.status === 'assigned' ? (
             <button
               type="button"
-              onClick={handleStartRoute}
+              onClick={() => void handleStartRoute()}
               className={cn(
                 TypeClass.btn,
                 'flex w-full items-center justify-center rounded-[28px] bg-[#F07B2A] py-4 font-bold text-white shadow-[0_6px_14px_rgba(240,123,42,0.35)]'

@@ -74,10 +74,16 @@ button:disabled,
 }
 
 @media (hover: hover) and (pointer: fine) {
-  button:hover,
-  [role='button']:hover {
+  button:not(.btn-plain):hover,
+  [role='button']:not(.btn-plain):hover {
     box-shadow: 0 8px 18px -12px rgba(0, 0, 0, 0.45);
     transform: translateY(-1px);
+  }
+
+  button.btn-plain:hover,
+  [role='button'].btn-plain:hover {
+    box-shadow: none;
+    transform: none;
   }
 
   a[href]:hover,

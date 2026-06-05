@@ -8,6 +8,8 @@ export type VolunteerRouteStop = {
   recipientName: string;
   addressLine: string;
   city: string;
+  latitude: number;
+  longitude: number;
   meals: number;
   status: VolunteerStopStatus;
   notes?: string;
@@ -31,6 +33,8 @@ export type VolunteerActiveRoute = {
   routeDate: string;
   kitchenName: string;
   pickupAddress: string;
+  pickupLatitude: number;
+  pickupLongitude: number;
   pickupAt: string;
   status: VolunteerRouteStatus;
   phase: VolunteerFlowPhase;
@@ -47,6 +51,8 @@ export const MOCK_VOLUNTEER_ROUTE: VolunteerActiveRoute = {
   routeDate: new Date().toISOString().slice(0, 10),
   kitchenName: 'Ontario Khalsa Darbar',
   pickupAddress: '7080 Dixie Rd, Mississauga',
+  pickupLatitude: 43.6472,
+  pickupLongitude: -79.6517,
   pickupAt: '5:30 PM',
   status: 'assigned',
   phase: 'idle',
@@ -59,6 +65,8 @@ export const MOCK_VOLUNTEER_ROUTE: VolunteerActiveRoute = {
       recipientName: 'Singh family',
       addressLine: '420 Bovaird Dr W',
       city: 'Brampton',
+      latitude: 43.7098,
+      longitude: -79.7934,
       meals: 4,
       status: 'pending',
       notes: 'Buzz 4421',
@@ -69,6 +77,8 @@ export const MOCK_VOLUNTEER_ROUTE: VolunteerActiveRoute = {
       recipientName: 'Kaur household',
       addressLine: '15 Glenforest Blvd',
       city: 'Brampton',
+      latitude: 43.7021,
+      longitude: -79.7628,
       meals: 3,
       status: 'pending',
     },
@@ -78,6 +88,8 @@ export const MOCK_VOLUNTEER_ROUTE: VolunteerActiveRoute = {
       recipientName: 'Patel family',
       addressLine: '88 Queen St E',
       city: 'Brampton',
+      latitude: 43.6854,
+      longitude: -79.7599,
       meals: 2,
       status: 'pending',
     },
@@ -87,6 +99,8 @@ export const MOCK_VOLUNTEER_ROUTE: VolunteerActiveRoute = {
       recipientName: 'Ahmed family',
       addressLine: '210 Main St S',
       city: 'Brampton',
+      latitude: 43.6789,
+      longitude: -79.7582,
       meals: 5,
       status: 'pending',
     },
@@ -96,6 +110,8 @@ export const MOCK_VOLUNTEER_ROUTE: VolunteerActiveRoute = {
       recipientName: 'Chen household',
       addressLine: '55 Kennedy Rd S',
       city: 'Brampton',
+      latitude: 43.6712,
+      longitude: -79.7521,
       meals: 2,
       status: 'pending',
     },

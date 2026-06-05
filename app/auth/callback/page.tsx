@@ -72,6 +72,7 @@ export default function AuthCallbackPage() {
 
         await setOnboardingCompleted(true);
         setStatus('done');
+        await new Promise((r) => setTimeout(r, 200));
         router.replace(getHomePathForRole(getStoredUserRole()));
       } catch {
         const session = await getCurrentSession();
@@ -85,6 +86,7 @@ export default function AuthCallbackPage() {
           });
           await setOnboardingCompleted(true);
           setStatus('done');
+          await new Promise((r) => setTimeout(r, 200));
           router.replace(getHomePathForRole(getStoredUserRole()));
           return;
         }
